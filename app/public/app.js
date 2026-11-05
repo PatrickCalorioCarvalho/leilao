@@ -436,7 +436,7 @@ async function telaLeiloes(m) {
     <label style="flex:1 1 100%">Texto da promissória <span class="sub">(em branco = texto padrão)</span>
       <textarea name="texto_promissoria" rows="4" style="width:100%;font:inherit"></textarea></label>
     <p class="sub" style="flex:1 1 100%;margin:0">Variáveis: <code>{vencimento}</code> <code>{emissao}</code> <code>{beneficiario}</code> <code>{cnpj}</code> <code>{valor}</code>
-      <code>{valor_extenso}</code> <code>{leilao}</code> <code>{cidade}</code> <code>{comprador}</code> <code>{cpf}</code> · <code>**texto**</code> = negrito</p>
+      <code>{valor_extenso}</code> <code>{leilao}</code> <code>{cidade}</code> <code>{comprador}</code> <code>{cpf}</code> <code>{lote}</code> <code>{produto}</code> · <code>**texto**</code> = negrito</p>
     <button>💾 Salvar</button><span id="cm"></span></form>
     <div class="row" style="margin-top:10px;align-items:center;gap:12px">
       <b>Logo da entidade</b><span id="logoprev"></span>

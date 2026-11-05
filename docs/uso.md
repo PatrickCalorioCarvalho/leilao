@@ -49,7 +49,7 @@ O lote doado aparece com a marca **doado** na Mesa, no Relatório e na **promiss
 ## Outras abas
 - **Lotes:** cadastro de lotes para quem só lança (PC separado). Nº automático; editar/excluir enquanto o leilão não for histórico.
 - **Pessoas:** cadastro com busca por nome/CPF. Valem para **todos** os leilões.
-- **Promissórias:** imprime uma, as marcadas ou todas — 1 folha A4 por comprador (via do comprador em cima, via da mesa embaixo, valor por extenso, lista de lotes com vivo/morto e doado).
+- **Promissórias:** imprime uma, as marcadas ou todas — 1 folha A4 por comprador (via do comprador em cima, via da mesa embaixo, cada uma numa caixa como a promissória antiga: *Lote Nº / Vencimento / Valor*, o texto "Até … pagarei por esta única via de NOTA PROMISSÓRIA a … ou à sua ordem a quantia de ### valor por extenso ### em moeda corrente deste país", lista de lotes com vivo/morto e doado, dados do arrematador e assinatura). Se a imagem enviada em **Leilões → Logo** for uma **faixa vertical** (como o `Lar.jpg` do sistema antigo), ela vira a faixa lateral da caixa; um logo normal fica no topo.
 - **Relatório:** veja abaixo.
 - **Leilões:** criar, usar, marcar **histórico 🔒** (somente leitura), excluir (só os não-históricos) e a configuração das promissórias.
 

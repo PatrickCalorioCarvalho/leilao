@@ -113,7 +113,7 @@ O sistema não tem nada fixo de nenhuma entidade. Em **Leilões → Configuraç�
 
 - **Dados da entidade:** beneficiário, CNPJ, endereço, telefone e cidade;
 - **Logo** (PNG, JPG, SVG…), enviado pela própria tela;
-- **Texto da promissória**, com variáveis `{valor}`, `{valor_extenso}`, `{vencimento}`, `{beneficiario}`, `{cidade}`, `{leilao}`, `{comprador}`… (em branco = texto padrão).
+- **Texto da promissória**, com variáveis `{valor}`, `{valor_extenso}`, `{vencimento}`, `{beneficiario}`, `{cidade}`, `{leilao}`, `{comprador}`, `{lote}`, `{produto}`… (em branco = texto padrão, igual ao da promissória antiga).
 
 Tudo isso fica **no banco**: vai em todo backup (automático, relatório final, Backblaze) e **volta na restauração**.
 Um leilão novo herda os dados, o logo e o texto do leilão em uso.

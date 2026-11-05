@@ -7,19 +7,23 @@
 @page{size:A4;margin:0}
 *{box-sizing:border-box}
 body{margin:0;font:12px/1.35 Georgia,serif;color:#000;background:#ddd}
-.folha{width:210mm;height:297mm;background:#fff;margin:8px auto;display:flex;flex-direction:column;page-break-after:always;overflow:hidden}
-.via{flex:1;padding:10mm 14mm;border-bottom:1px dashed #000;position:relative;display:flex;flex-direction:column}
-.via:last-child{border-bottom:0}
-.via .tag{position:absolute;right:14mm;top:5mm;font:bold 10px Arial;text-transform:uppercase;border:1px solid #000;padding:1px 6px}
-h1{margin:0 0 4px;font-size:18px;text-align:center;letter-spacing:2px}
-.ent{display:flex;gap:10px;align-items:center;font-size:10.5px;line-height:1.25;margin-bottom:4px}.ent img{max-height:62px;max-width:150px}
-.topo{display:flex;justify-content:space-between;border:1px solid #000;padding:4px 8px;margin-bottom:6px}
-.txt{text-align:justify;font-size:12.5px}
-table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10.5px}
+.folha{width:210mm;height:297mm;background:#fff;margin:8px auto;display:flex;flex-direction:column;justify-content:space-evenly;page-break-after:always;overflow:hidden}
+/* cada via é uma caixa (como a promissória original): faixa lateral da entidade + corpo */
+.via{height:136mm;margin:0 10mm;border:1px solid #000;display:flex;position:relative;overflow:hidden}
+.faixa{flex:0 0 22mm;border-right:1px solid #000;display:flex;padding:1mm}.faixa img{width:100%;height:100%;object-fit:contain}
+.corpo{flex:1;min-width:0;padding:5mm 8mm 5mm 6mm;display:flex;flex-direction:column}
+.via .tag{position:absolute;right:3mm;top:2mm;font:bold 9px Arial;text-transform:uppercase;border:1px solid #000;padding:1px 6px;background:#fff}
+.ent{display:flex;gap:10px;align-items:center;font-size:10.5px;line-height:1.25;margin-bottom:4px}.ent img{max-height:46px;max-width:130px}
+.cab{display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;font-size:13px;margin:0 0 9px;padding-top:3px}
+.cab span:nth-child(even){text-align:right}
+.txt{text-align:justify;font-size:13px;line-height:1.5;margin:0 0 7px}
+table{width:100%;border-collapse:collapse;margin:2px 0 7px;font-size:11.5px}
 th,td{border-bottom:1px solid #999;padding:1px 4px;text-align:left}
 td.n,th.n{text-align:right}
-.assin{margin-top:auto;display:flex;gap:24px;align-items:end}
-.assin div{flex:1;border-top:1px solid #000;text-align:center;padding-top:2px;font-size:10.5px}
+.mini .txt{font-size:11.5px;line-height:1.35;margin-bottom:4px}.mini table{font-size:9.5px}.mini th,.mini td{padding:0 4px}.mini .cab{margin-bottom:4px}
+.dados{font-size:12.5px;line-height:1.55;margin:0 0 6px}
+.assin{margin-top:auto;padding-top:6px}
+.assin div{width:75%;border-top:1px solid #000;padding-top:2px;font-size:11.5px}
 .bar{position:sticky;top:0;background:#333;color:#fff;padding:8px;text-align:center}
 .bar button{font-size:16px;padding:6px 16px}
 @media print{.bar{display:none}body{background:#fff}.folha{margin:0}}
@@ -58,12 +62,12 @@ function extenso(v) {
   return out.join(' e ') || 'zero reais';
 }
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-const dataExt = iso => { const [a, m, d] = iso.split('-'); return `${+d} de ${MESES[+m - 1]} de ${a}`; };
+const dataExt = iso => { const [a, m, d] = iso.split('-'); return `${new Date(+a, +m - 1, +d).toLocaleDateString('pt-BR', { weekday: 'long' })}, ${+d} de ${MESES[+m - 1]} de ${a}`; };
 
 // texto da promissória: vem do banco (Leilões > Configuração); vazio = este padrão. **negrito**, {variável}, quebra de linha
-const PADRAO = 'Aos {vencimento} pagarei por esta única via de **NOTA PROMISSÓRIA** a {beneficiario} ou à sua ordem, a quantia de {valor} ({valor_extenso}), em moeda corrente nacional, referente à arrematação de lotes no {leilao}. Pagável em {cidade}.';
+const padrao = L => 'Até {vencimento} pagarei por esta única via de **NOTA PROMISSÓRIA** a {beneficiario}' + (L.cnpj ? ' CNPJ: {cnpj}' : '') + ' ou à sua ordem a quantia de ### {valor_extenso} ### em moeda corrente deste país.';
 function textoPromissoria(L, vars) {
-  return esc(L.texto_promissoria || PADRAO).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+  return esc(L.texto_promissoria || padrao(L)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
     .replace(/\{(\w+)\}/g, (m, k) => (k in vars ? `<b>${esc(vars[k])}</b>` : m)).replace(/\n/g, '<br>');
 }
 
@@ -71,25 +75,38 @@ function via(L, it, nome) {
   const total = it.lotes.reduce((s, l) => s + l.valor_final, 0), p = it.pessoa;
   const venc = L.vencimento ? dataExt(L.vencimento) : '____ de ______________ de ________';
   const emis = L.data ? dataExt(L.data) : '____ de ______________ de ________';
+  const lotes = it.lotes.map(l => l.rotulo).join(', ');
   const vars = { vencimento: venc, emissao: emis, beneficiario: L.beneficiario || '________________________________', cnpj: L.cnpj || '',
-    valor: brl(total), valor_extenso: extenso(total), leilao: L.nome, cidade: L.cidade || '______________', comprador: p.nome, cpf: p.cpf || '' };
-  return `<div class="via"><span class="tag">${nome}</span>
-  <div class="ent">${L.tem_logo ? `<img src="/api/logo?leilao=${L.id}">` : ''}<div><b>${esc(L.beneficiario)}</b>${L.cnpj ? '<br>CNPJ ' + esc(L.cnpj) : ''}${L.endereco_entidade || L.telefone_entidade ? '<br>' + esc(L.endereco_entidade) + (L.telefone_entidade ? ' · ' + esc(L.telefone_entidade) : '') : ''}</div></div>
-  <h1>NOTA PROMISSÓRIA</h1>
-  <div class="topo"><span>${esc(L.nome)}</span><span>Vencimento: <b>${L.vencimento ? L.vencimento.split('-').reverse().join('/') : '___/___/______'}</b></span><span><b>${brl(total)}</b></span></div>
+    valor: brl(total), valor_extenso: extenso(total), leilao: L.nome, cidade: L.cidade || '______________', comprador: p.nome, cpf: p.cpf || '',
+    lote: lotes, produto: it.lotes.map(l => l.descricao).join('; ') };
+  const logo = L.tem_logo ? `<img class="logo" src="/api/logo?leilao=${L.id}">` : '';
+  return `<div class="via${it.lotes.length > 7 ? ' mini' : ''}"><span class="tag">${nome}</span><div class="corpo">
+  ${logo || L.endereco_entidade || L.telefone_entidade ? `<div class="ent">${logo}<div><b>${esc(L.beneficiario)}</b>${L.cnpj ? '<br>CNPJ ' + esc(L.cnpj) : ''}${L.endereco_entidade || L.telefone_entidade ? '<br>' + esc(L.endereco_entidade) + (L.endereco_entidade && L.telefone_entidade ? ' · ' : '') + esc(L.telefone_entidade) : ''}</div></div>` : ''}
+  <div class="cab"><span>Lote Nº: <b>${esc(lotes)}</b></span><span>Vencimento: <b>${L.vencimento ? L.vencimento.split('-').reverse().join('/') : '___/___/______'}</b></span>
+    <span>${esc(L.nome)}</span><span>Valor: <b>${brl(total)}</b></span></div>
   <p class="txt">${textoPromissoria(L, vars)}</p>
-  <table><tr><th>Lote</th><th>Descrição</th><th class="n">Valor</th></tr>
-  ${it.lotes.map(l => `<tr><td>${esc(l.rotulo)}</td><td>${esc(l.descricao)}${l.condicao ? ' (' + l.condicao + ')' : ''}${l.animal_num ? ' #' + esc(l.animal_num) : ''}${l.doado ? ' <b>[DOADO]</b>' : ''}</td><td class="n">${brl(l.valor_final)}</td></tr>`).join('')}</table>
-  <p class="txt" style="margin:2px 0"><b>Emitente:</b> ${esc(p.nome)} &nbsp; <b>CPF:</b> ${esc(p.cpf) || '________________'} &nbsp; <b>RG:</b> ${esc(p.rg) || '____________'}<br>
-  <b>Endereço:</b> ${esc(p.endereco) || '______________________________________'} &nbsp; <b>Tel:</b> ${esc(p.telefone)}</p>
-  <p class="txt" style="margin:2px 0">${esc(L.cidade || '______________')}, ${emis}.</p>
-  <div class="assin"><div>Assinatura do emitente — ${esc(p.nome)}</div></div></div>`;
+  <table><tr><th>Referente à</th><th>Descrição</th><th class="n">Valor</th></tr>
+  ${it.lotes.map(l => `<tr><td>Lote ${esc(l.rotulo)}</td><td>${esc(l.descricao)}${l.condicao ? ' (' + l.condicao + ')' : ''}${l.animal_num ? ' #' + esc(l.animal_num) : ''}${l.doado ? ' <b>[DOADO]</b>' : ''}</td><td class="n">${brl(l.valor_final)}</td></tr>`).join('')}</table>
+  <div class="dados"><b>Arrematador:</b> ${esc(p.nome)} &nbsp;–&nbsp; <b>RG:</b> ${esc(p.rg) || '______________'}<br>
+  <b>CPF:</b> ${esc(p.cpf) || '________________'} &nbsp;&nbsp; <b>Telefone:</b> ${esc(p.telefone) || '______________'}<br>
+  <b>Endereço:</b> ${esc(p.endereco) || '______________________________________'}<br>
+  ${esc(L.cidade || '______________')}, ${emis}.</div>
+  <div class="assin"><div>${esc(p.nome)} &nbsp;–&nbsp; RG: ${esc(p.rg)}</div></div></div></div>`;
 }
+// logo "em pé" (faixa vertical, como o Lar.jpg do sistema antigo) vira a faixa lateral da caixa; logo normal fica no topo
+function logoOk(img) {
+  const v = img.closest('.via');
+  if (!v || !img.naturalWidth || img.naturalHeight < img.naturalWidth * 1.5) return;
+  const f = document.createElement('div'); f.className = 'faixa'; img.className = ''; f.append(img);
+  v.prepend(f); v.querySelector('.ent')?.remove();
+}
+const carregada = img => new Promise(r => { const f = () => { logoOk(img); r(); }; img.complete ? f() : (img.addEventListener('load', f), img.addEventListener('error', r)); });
 (async () => {
   const r = await (await fetch('/api/promissoria' + location.search)).json();
   $info = document.getElementById('info'); $info.textContent = `${r.itens.length} promissória(s) — ${r.itens.length} folha(s) A4`;
   document.getElementById('out').innerHTML = r.itens.map(it =>
     `<div class="folha">${via(r.leilao, it, 'Via do comprador')}${via(r.leilao, it, 'Via da mesa')}</div>`).join('') || '<p style="padding:20px">Nenhum arremate.</p>';
+  await Promise.all([...document.querySelectorAll('img.logo')].map(carregada));
   if (new URLSearchParams(location.search).get('auto') && r.itens.length) setTimeout(() => print(), 300);
 })();
 </script>

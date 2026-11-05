@@ -39,6 +39,5 @@ services:
       BACKUP_SENHA: ${BACKUP_SENHA:-}
     ports: ["3000:3000"]
     volumes:
-      - ./logo:/app/logo:ro                 # coloque aqui logo.png (opcional)
       - ./local/banco/finais:/backups/local       # backups/relatórios finais: SEMPRE gravados aqui
       - ${NUVEM_DIR:-./local/banco/nuvem}:/backups/nuvem   # OPCIONAL: pasta do OneDrive/Google Drive deste PC

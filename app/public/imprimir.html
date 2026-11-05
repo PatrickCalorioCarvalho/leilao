@@ -60,16 +60,24 @@ function extenso(v) {
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 const dataExt = iso => { const [a, m, d] = iso.split('-'); return `${+d} de ${MESES[+m - 1]} de ${a}`; };
 
+// texto da promissória: vem do banco (Leilões > Configuração); vazio = este padrão. **negrito**, {variável}, quebra de linha
+const PADRAO = 'Aos {vencimento} pagarei por esta única via de **NOTA PROMISSÓRIA** a {beneficiario} ou à sua ordem, a quantia de {valor} ({valor_extenso}), em moeda corrente nacional, referente à arrematação de lotes no {leilao}. Pagável em {cidade}.';
+function textoPromissoria(L, vars) {
+  return esc(L.texto_promissoria || PADRAO).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/\{(\w+)\}/g, (m, k) => (k in vars ? `<b>${esc(vars[k])}</b>` : m)).replace(/\n/g, '<br>');
+}
+
 function via(L, it, nome) {
   const total = it.lotes.reduce((s, l) => s + l.valor_final, 0), p = it.pessoa;
   const venc = L.vencimento ? dataExt(L.vencimento) : '____ de ______________ de ________';
   const emis = L.data ? dataExt(L.data) : '____ de ______________ de ________';
+  const vars = { vencimento: venc, emissao: emis, beneficiario: L.beneficiario || '________________________________', cnpj: L.cnpj || '',
+    valor: brl(total), valor_extenso: extenso(total), leilao: L.nome, cidade: L.cidade || '______________', comprador: p.nome, cpf: p.cpf || '' };
   return `<div class="via"><span class="tag">${nome}</span>
-  <div class="ent"><img src="/api/logo" onerror="this.remove()"><div><b>${esc(L.beneficiario)}</b>${L.cnpj ? '<br>CNPJ ' + esc(L.cnpj) : ''}${L.endereco_entidade || L.telefone_entidade ? '<br>' + esc(L.endereco_entidade) + (L.telefone_entidade ? ' · ' + esc(L.telefone_entidade) : '') : ''}</div></div>
+  <div class="ent">${L.tem_logo ? `<img src="/api/logo?leilao=${L.id}">` : ''}<div><b>${esc(L.beneficiario)}</b>${L.cnpj ? '<br>CNPJ ' + esc(L.cnpj) : ''}${L.endereco_entidade || L.telefone_entidade ? '<br>' + esc(L.endereco_entidade) + (L.telefone_entidade ? ' · ' + esc(L.telefone_entidade) : '') : ''}</div></div>
   <h1>NOTA PROMISSÓRIA</h1>
   <div class="topo"><span>${esc(L.nome)}</span><span>Vencimento: <b>${L.vencimento ? L.vencimento.split('-').reverse().join('/') : '___/___/______'}</b></span><span><b>${brl(total)}</b></span></div>
-  <p class="txt">Aos <b>${venc}</b> pagarei por esta única via de <b>NOTA PROMISSÓRIA</b> a <b>${esc(L.beneficiario || '________________________________')}</b>
-  ou à sua ordem, a quantia de <b>${brl(total)}</b> (<b>${extenso(total)}</b>), em moeda corrente nacional, referente à arrematação de lotes no ${esc(L.nome)}. Pagável em ${esc(L.cidade || '______________')}.</p>
+  <p class="txt">${textoPromissoria(L, vars)}</p>
   <table><tr><th>Lote</th><th>Descrição</th><th class="n">Valor</th></tr>
   ${it.lotes.map(l => `<tr><td>${esc(l.rotulo)}</td><td>${esc(l.descricao)}${l.condicao ? ' (' + l.condicao + ')' : ''}${l.animal_num ? ' #' + esc(l.animal_num) : ''}${l.doado ? ' <b>[DOADO]</b>' : ''}</td><td class="n">${brl(l.valor_final)}</td></tr>`).join('')}</table>
   <p class="txt" style="margin:2px 0"><b>Emitente:</b> ${esc(p.nome)} &nbsp; <b>CPF:</b> ${esc(p.cpf) || '________________'} &nbsp; <b>RG:</b> ${esc(p.rg) || '____________'}<br>

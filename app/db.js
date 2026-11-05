@@ -40,6 +40,8 @@ export async function iniciar() {
     await pool.query("ALTER TABLE leilao ADD COLUMN link_nuvem VARCHAR(600) NOT NULL DEFAULT ''");
   if (!(await tem('lote', 'condicao')))
     await pool.query("ALTER TABLE lote ADD COLUMN condicao VARCHAR(10) NOT NULL DEFAULT '' AFTER animal_num");
+  if (!(await tem('leilao', 'logo'))) // tudo da entidade fica no BANCO (vai junto no backup): logo e texto da promissória
+    await pool.query("ALTER TABLE leilao ADD COLUMN logo MEDIUMBLOB NULL, ADD COLUMN logo_mime VARCHAR(40) NOT NULL DEFAULT '', ADD COLUMN texto_promissoria TEXT NULL");
   if (!(await one('SELECT 1 FROM leilao WHERE ativo=1')))
     await run('INSERT INTO leilao(nome,data,ativo) VALUES(?,CURDATE(),1)', 'Leilão ' + new Date().getFullYear());
 }

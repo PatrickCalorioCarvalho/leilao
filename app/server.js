@@ -6,7 +6,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { q, one, run, iniciar } from './db.js';
 import { estadoB2, pendentesB2, b2Configurado } from './b2.js';
-import { salvarTudo, iniciarAuto, marcarAlteracao, nuvemConfigurada, ultimo, dumpSql, relatorioHtml, lotesDoLeilao, acharLogo, pacoteZip, csvResumoGeral, xlsxResumoGeral, entregaHtml } from './backup.js';
+import { salvarTudo, iniciarAuto, marcarAlteracao, nuvemConfigurada, ultimo, dumpSql, relatorioHtml, lotesDoLeilao, pacoteZip, csvResumoGeral, xlsxResumoGeral, entregaHtml } from './backup.js';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
@@ -21,7 +21,9 @@ const editavel = async () => {
 };
 const dt = v => txt(v) || null;
 const iso = v => (v instanceof Date ? v.toISOString().slice(0, 10) : v);
-const fixLeilao = a => a && { ...a, data: iso(a.data), vencimento: iso(a.vencimento) };
+// o logo (binário) nunca vai no JSON: o navegador busca em /api/logo
+const fixLeilao = a => { if (!a) return a; const { logo, ...r } = a; return { ...r, tem_logo: !!logo, data: iso(a.data), vencimento: iso(a.vencimento) }; };
+const LOGO_TIPOS = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp', 'image/gif'];
 
 // tempo real (SSE): avisa todos os PCs quando algo muda
 const clients = new Set();
@@ -37,20 +39,33 @@ const routes = {
   'GET /api/leilao': async () => ({ ...fixLeilao(await ativo()), leiloes: await q('SELECT id,nome,ativo,historico FROM leilao ORDER BY historico, id DESC') }),
   'PUT /api/leilao': async b => {
     const a = await ativo();
-    await run('UPDATE leilao SET nome=?,data=?,beneficiario=?,cidade=?,vencimento=?,cnpj=?,endereco_entidade=?,telefone_entidade=?,link_nuvem=? WHERE id=?',
-      txt(b.nome) || a.nome, dt(b.data), txt(b.beneficiario), txt(b.cidade), dt(b.vencimento), txt(b.cnpj), txt(b.endereco_entidade), txt(b.telefone_entidade), txt(b.link_nuvem), a.id);
+    await run('UPDATE leilao SET nome=?,data=?,beneficiario=?,cidade=?,vencimento=?,cnpj=?,endereco_entidade=?,telefone_entidade=?,link_nuvem=?,texto_promissoria=? WHERE id=?',
+      txt(b.nome) || a.nome, dt(b.data), txt(b.beneficiario), txt(b.cidade), dt(b.vencimento), txt(b.cnpj), txt(b.endereco_entidade), txt(b.telefone_entidade), txt(b.link_nuvem),
+      txt(b.texto_promissoria) || null, a.id);
     return fixLeilao(await ativo());
   },
   'GET /api/leiloes': async () => (await q(`SELECT l.id,l.nome,l.data,l.ativo,l.historico,COUNT(o.id) lotes,
       COALESCE(SUM(o.valor_final),0) total FROM leilao l LEFT JOIN lote o ON o.leilao_id=l.id GROUP BY l.id ORDER BY l.historico, l.id DESC`))
       .map(l => ({ ...l, data: iso(l.data), lotes: Number(l.lotes), total: Number(l.total) })),
-  'POST /api/leilao': async b => { // cria e já ativa; copia beneficiário/cidade do leilão atual
+  'POST /api/leilao': async b => { // cria e já ativa; herda do leilão atual os dados da entidade, logo e texto da promissória
     const o = await ativo();
     await run('UPDATE leilao SET ativo=0');
-    const r = await run('INSERT INTO leilao(nome,data,beneficiario,cidade,cnpj,endereco_entidade,telefone_entidade,link_nuvem,ativo) VALUES(?,?,?,?,?,?,?,?,1)',
-      txt(b.nome) || 'Novo leilão', dt(b.data) || new Date().toISOString().slice(0, 10), o?.beneficiario || '', o?.cidade || '', o?.cnpj || '', o?.endereco_entidade || '', o?.telefone_entidade || '', o?.link_nuvem || '');
+    const r = await run('INSERT INTO leilao(nome,data,beneficiario,cidade,cnpj,endereco_entidade,telefone_entidade,link_nuvem,logo,logo_mime,texto_promissoria,ativo) VALUES(?,?,?,?,?,?,?,?,?,?,?,1)',
+      txt(b.nome) || 'Novo leilão', dt(b.data) || new Date().toISOString().slice(0, 10), o?.beneficiario || '', o?.cidade || '', o?.cnpj || '', o?.endereco_entidade || '', o?.telefone_entidade || '', o?.link_nuvem || '',
+      o?.logo || null, o?.logo_mime || '', o?.texto_promissoria || null);
     return { id: r.insertId };
   },
+  // logo da entidade no leilão em uso: { dados: "data:image/png;base64,..." }
+  'POST /api/logo': async b => {
+    const a = await ativo();
+    const m = /^data:([\w/+.-]+);base64,(.+)$/s.exec(txt(b.dados));
+    if (!m || !LOGO_TIPOS.includes(m[1])) throw new Error('Envie uma imagem PNG, JPG, SVG, WEBP ou GIF.');
+    const buf = Buffer.from(m[2], 'base64');
+    if (buf.length > 2 * 1024 * 1024) throw new Error('Logo muito grande (máximo 2 MB).');
+    await run('UPDATE leilao SET logo=?, logo_mime=? WHERE id=?', buf, m[1], a.id);
+    return { ok: true, bytes: buf.length };
+  },
+  'DELETE /api/logo': async () => { const a = await ativo(); await run("UPDATE leilao SET logo=NULL, logo_mime='' WHERE id=?", a.id); return {}; },
   'POST /api/leilao/:id/historico': async (b, _, p) => {
     await run('UPDATE leilao SET historico=? WHERE id=?', b.valor ? 1 : 0, p.id); return {};
   },
@@ -129,7 +144,7 @@ const routes = {
     return r;
   },
   'POST /api/backup': async () => salvarTudo(await ativo(), 'backup'),
-  'GET /api/info': async () => ({ ip: process.env.HOST_IP || '', porta: Number(process.env.PUBLIC_PORT) || PORT, nuvem: nuvemConfigurada(), logo: !!acharLogo(), ultimo,
+  'GET /api/info': async () => ({ ip: process.env.HOST_IP || '', porta: Number(process.env.PUBLIC_PORT) || PORT, nuvem: nuvemConfigurada(), logo: !!(await ativo())?.logo, ultimo,
     b2: b2Configurado() ? { pendentes: pendentesB2(), ...estadoB2 } : null }),
   // rastrear um animal pelo nº (brinco) em TODOS os leilões: onde foi, quem comprou, por quanto, se foi doado/reaberto
   'GET /api/animal': async (_, u) => {
@@ -200,11 +215,12 @@ http.createServer(async (req, res) => {
       clients.add(res); req.on('close', () => clients.delete(res));
       return;
     }
-    if (u.pathname === '/api/logo') { // logo da entidade (opcional, pasta logo/)
-      const l = acharLogo();
-      if (!l) { res.writeHead(404); return res.end(); }
-      res.writeHead(200, { 'Content-Type': l.mime, 'Cache-Control': 'no-cache' });
-      return fs.createReadStream(l.arquivo).pipe(res);
+    if (u.pathname === '/api/logo' && req.method === 'GET') { // logo da entidade, guardado no banco (?leilao=ID; padrão = em uso)
+      const id = Number(u.searchParams.get('leilao')) || 0;
+      const l = id ? await one('SELECT logo, logo_mime FROM leilao WHERE id=?', id) : await ativo();
+      if (!l?.logo) { res.writeHead(404); return res.end(); }
+      res.writeHead(200, { 'Content-Type': l.logo_mime || 'image/png', 'Cache-Control': 'no-cache' });
+      return res.end(l.logo);
     }
     // downloads pelo navegador (funcionam em qualquer PC, sem pasta de nuvem)
     if (u.pathname === '/api/baixar/pacote.zip') { // relatório final + lotes + backup num arquivo só

@@ -23,7 +23,7 @@ jobs:
       - name: Arquivos de instalação dentro da imagem
         run: |
           mkdir -p app/implantacao
-          cp -r docker-compose.yml .env.exemplo Leilao.bat leilao.ps1 logo app/implantacao/
+          cp -r docker-compose.yml .env.exemplo Leilao.bat leilao.ps1 app/implantacao/
           cp README.md app/implantacao/LEIA-ME.md
       - id: nome   # o ghcr exige nome em minúsculas
         run: echo "img=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"

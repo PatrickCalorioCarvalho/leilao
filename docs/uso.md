@@ -5,7 +5,7 @@
 - **Mesa em 3 passos numerados**: **1 Lote** (número e nome grandes, com nº do animal e vivo/morto) → **2 Quem comprou?** → **3 Por quanto?**, e um botão verde enorme **✅ ARREMATAR**.
 - **Situação dos lotes por ícone**: ⏳ aberto · ✅ vendido · 🎁 doado. Mensagens de sucesso (✅) e de erro (⚠️) bem destacadas.
 - Letras e botões grandes, alto contraste e foco bem visível para quem usa só o teclado (Tab/Enter).
-- O logo da entidade aparece no topo.
+- O logo da entidade aparece no topo (envie em **Leilões → Configuração**; fica no banco e vai no backup).
 
 ## Antes de começar
 1. Ligue o servidor (`Leilao.bat → Iniciar`) e confira que os outros PCs abrem o endereço.

@@ -435,8 +435,16 @@ async function telaLeiloes(m) {
     <label style="flex:2 1 300px">Link de envio do OneDrive (opcional)<input name="link_nuvem" placeholder="https://1drv.ms/..."></label>
     <label>Cidade<input name="cidade"></label><label>Vencimento<input type="date" name="vencimento"></label>
     <label>Nome do leilão<input name="nome"></label><label>Data<input type="date" name="data"></label>
+    <label style="flex:1 1 100%">Texto da promissória <span class="sub">(em branco = texto padrão)</span>
+      <textarea name="texto_promissoria" rows="4" style="width:100%;font:inherit"></textarea></label>
+    <p class="sub" style="flex:1 1 100%;margin:0">Variáveis: <code>{vencimento}</code> <code>{emissao}</code> <code>{beneficiario}</code> <code>{cnpj}</code> <code>{valor}</code>
+      <code>{valor_extenso}</code> <code>{leilao}</code> <code>{cidade}</code> <code>{comprador}</code> <code>{cpf}</code> · <code>**texto**</code> = negrito</p>
     <button>💾 Salvar</button><span id="cm"></span></form>
-    <p class="sub" style="margin-bottom:0">Logo: coloque o arquivo <b>logo.png</b> (ou .jpg/.svg) na pasta <b>logo/</b> do projeto — aparece nas promissórias e no relatório final. <span id="logost"></span></p></div>`;
+    <div class="row" style="margin-top:10px;align-items:center;gap:12px">
+      <b>Logo da entidade</b><span id="logoprev"></span>
+      <input type="file" id="logoarq" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" hidden><button type="button" class="sm sec" id="logobtn">🖼 Escolher imagem</button>
+      <button type="button" class="sm red" id="logodel">🗑 Remover logo</button><span id="logost" class="sub"></span></div>
+    <p class="sub" style="margin-bottom:0">Dados da entidade, logo e texto ficam <b>no banco</b>: vão junto no backup e voltam na restauração. Um leilão novo herda os do leilão em uso.</p></div>`;
   $('#nf', m).elements.data.value = hoje();
   $('#nf', m).onsubmit = async e => {
     e.preventDefault();
@@ -448,7 +456,27 @@ async function telaLeiloes(m) {
   $('#finz', m).onclick = async () => { if (await salvarFinal(true, $('#bmsg', m))) { $('#finz', m).disabled = true; await loadLeilao(); } };
   // QR code com o endereço do servidor (IP detectado pelo Leilao.bat (Iniciar), ou o que o navegador está usando)
   await atualizaInfo();
-  $('#logost', m).textContent = window.info?.logo ? '✔ logo encontrado.' : '(nenhum logo ainda)';
+  const logoUi = () => {
+    $('#logoprev', m).innerHTML = leilao.tem_logo ? `<img src="/api/logo?leilao=${leilao.id}&t=${Date.now()}" style="max-height:56px;max-width:160px;vertical-align:middle;background:#fff">` : '<span class="sub">(nenhum)</span>';
+    $('#logodel', m).style.display = leilao.tem_logo ? '' : 'none';
+  };
+  logoUi();
+  $('#logobtn', m).onclick = () => $('#logoarq', m).click();
+  $('#logoarq', m).onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > 2 * 1024 * 1024) return flash($('#logost', m), 'Imagem muito grande (máximo 2 MB).', false);
+    const rd = new FileReader();
+    rd.onload = async () => {
+      try { await api('/api/logo', 'POST', { dados: rd.result }); leilao.tem_logo = true; logoUi(); flash($('#logost', m), '✔ Logo salvo no banco'); }
+      catch (er) { flash($('#logost', m), er.message, false); }
+      e.target.value = '';
+    };
+    rd.readAsDataURL(f);
+  };
+  $('#logodel', m).onclick = async () => {
+    if (!confirm('Remover o logo deste leilão?')) return;
+    await api('/api/logo', 'DELETE'); leilao.tem_logo = false; logoUi(); flash($('#logost', m), 'Logo removido');
+  };
   const srv = $('#srv', m), local = ['localhost', '127.0.0.1', ''].includes(location.hostname);
   let saved = ''; try { saved = localStorage.srv || ''; } catch {}
   srv.value = saved || (local ? (window.info?.ip ? `${window.info.ip}:${window.info.porta}` : '') : location.host);
@@ -460,7 +488,7 @@ async function telaLeiloes(m) {
   };
   srv.oninput = qrs; qrs();
   const cf = $('#cf', m);
-  for (const k of ['beneficiario', 'link_nuvem', 'cnpj', 'telefone_entidade', 'endereco_entidade', 'cidade', 'vencimento', 'nome', 'data']) cf[k].value = leilao[k] || '';
+  for (const k of ['beneficiario', 'link_nuvem', 'cnpj', 'telefone_entidade', 'endereco_entidade', 'cidade', 'vencimento', 'nome', 'data', 'texto_promissoria']) cf[k].value = leilao[k] || '';
   cf.onsubmit = async e => { e.preventDefault(); await api('/api/leilao', 'PUT', Object.fromEntries(new FormData(cf))); flash($('#cm', m), 'Salvo'); loadLeilao(); };
   let lista = [];
   const draw = () => {

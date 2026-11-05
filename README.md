@@ -85,7 +85,6 @@ Leilao/
 ├── docker-compose.yml  .env.exemplo  README.md
 ├── app/            código do sistema (só esta pasta vira a imagem Docker)
 ├── docs/           documentação
-├── logo/           logo da entidade (promissórias e relatório final)
 └── local/          DADOS PESSOAIS deste PC: fora do Git, nunca compartilhe
     ├── mysql/        arquivos internos do MySQL (~200 MB; recriado a partir do leilao.sql)
     ├── banco/        leilao.sql (banco exportado), finais/ (relatórios e backups), backups/
@@ -108,6 +107,17 @@ Leilao/
 
 O `.env` guarda a configuração deste PC (imagem, Backblaze, senha dos backups). Ele fica **fora do Git**; o modelo está em `.env.exemplo`.
 Em `app/` ficam `server.js` (servidor), `db.js`, `backup.js` (backups e relatórios), `b2.js` (envio ao Backblaze), `restaurar.js`, `schema.sql` e `public/` (telas).
+
+## Sistema neutro: tudo da entidade fica no banco
+
+O sistema não tem nada fixo de nenhuma entidade. Em **Leilões → Configuração** você cadastra, por leilão:
+
+- **Dados da entidade:** beneficiário, CNPJ, endereço, telefone e cidade;
+- **Logo** (PNG, JPG, SVG…), enviado pela própria tela;
+- **Texto da promissória**, com variáveis `{valor}`, `{valor_extenso}`, `{vencimento}`, `{beneficiario}`, `{cidade}`, `{leilao}`, `{comprador}`… (em branco = texto padrão).
+
+Tudo isso fica **no banco**: vai em todo backup (automático, relatório final, Backblaze) e **volta na restauração**.
+Um leilão novo herda os dados, o logo e o texto do leilão em uso.
 
 ## Documentação
 

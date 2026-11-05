@@ -15,16 +15,8 @@ const LOCAL = process.env.BACKUP_LOCAL || path.join(DIR, '..', 'local', 'banco',
 const NUVEM = process.env.BACKUP_NUVEM || '';
 const pastaNuvemOk = () => !!NUVEM && process.env.NUVEM_OK === 'sim';
 export const nuvemConfigurada = () => pastaNuvemOk() || b2Configurado();
-const LOGO_DIR = process.env.LOGO_DIR || path.join(DIR, 'logo');
-const MIMES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', svg: 'image/svg+xml', webp: 'image/webp', gif: 'image/gif' };
-// logo opcional: qualquer arquivo "logo.png|jpg|jpeg|svg|webp|gif" na pasta logo/
-export function acharLogo() {
-  try {
-    const f = fs.readdirSync(LOGO_DIR).find(n => /^logo\.(png|jpe?g|svg|webp|gif)$/i.test(n));
-    return f ? { arquivo: path.join(LOGO_DIR, f), mime: MIMES[f.split('.').pop().toLowerCase()] } : null;
-  } catch { return null; }
-}
-const logoDataUri = () => { const l = acharLogo(); return l ? `data:${l.mime};base64,${fs.readFileSync(l.arquivo).toString('base64')}` : ''; };
+// logo da entidade: guardado no banco (coluna leilao.logo), embutido nos relatórios para abrirem em qualquer lugar
+const logoDataUri = leilao => (leilao?.logo ? `data:${leilao.logo_mime || 'image/png'};base64,${Buffer.from(leilao.logo).toString('base64')}` : '');
 const esc = v => sql.escape(v);
 const h = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const brl = v => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -76,7 +68,7 @@ body{font:13px/1.4 Arial,sans-serif;margin:24px;color:#111}h1{margin:0}h2{margin
 table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid #ccc;padding:3px 6px;text-align:left}th{background:#eee}td.n,th.n{text-align:right}
 .k{display:flex;gap:12px;margin:10px 0}.k div{flex:1;border:1px solid #999;padding:8px;text-align:center}.k b{display:block;font-size:20px}.d{color:#8a5200;font-weight:bold}
 @media print{body{margin:8mm}}</style></head><body>
-<div style="display:flex;gap:14px;align-items:center;margin-bottom:8px">${logoDataUri() ? `<img src="${logoDataUri()}" style="max-height:70px;max-width:160px">` : ''}
+<div style="display:flex;gap:14px;align-items:center;margin-bottom:8px">${logoDataUri(leilao) ? `<img src="${logoDataUri(leilao)}" style="max-height:70px;max-width:160px">` : ''}
 <div><b style="font-size:16px">${h(leilao.beneficiario)}</b><br>${leilao.cnpj ? 'CNPJ ' + h(leilao.cnpj) + '<br>' : ''}${h(leilao.endereco_entidade)} ${leilao.telefone_entidade ? '· ' + h(leilao.telefone_entidade) : ''}</div></div>
 <h1>Relatório final — ${h(leilao.nome)}</h1><div>${h(leilao.data || '')} ${leilao.cidade ? '· ' + h(leilao.cidade) : ''} · gerado em ${new Date().toLocaleString('pt-BR')}</div>
 <div class="k"><div>Lotes vendidos<b>${vend.length} / ${rows.length}</b></div><div>Total arrematado<b>${brl(total)}</b></div><div>Com entrega<b>${brl(total - doado)}</b></div><div>Doados (sem entrega)<b>${brl(doado)}</b></div></div>
@@ -235,7 +227,7 @@ export function entregaHtml(leilao, rows, { agrupar = true, barra = null } = {})
   const grupos = new Map();
   for (const r of lista) { const g = grupos.get(r.pessoa_id) || { nome: r.comprador, tel: r.telefone, end: r.endereco, itens: [] }; g.itens.push(r); grupos.set(r.pessoa_id, g); }
   const gs = [...grupos.values()].sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt'));
-  const logo = logoDataUri();
+  const logo = logoDataUri(leilao);
   const item = r => `${h(r.descricao)}${r.condicao ? ' <i>(' + h(r.condicao) + ')</i>' : ''}`;
   const corpo = !lista.length ? '<p>Nenhum lote com entrega.</p>'
     : agrupar ? gs.map(g => `<div class="bloco"><div class="top"><b>${h(g.nome)}</b> ${g.tel ? '· Tel: ' + h(g.tel) : ''}<br><span>Endereço: ${h(g.end) || '<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>'}</span></div>

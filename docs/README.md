@@ -41,7 +41,7 @@ Depois, crie um **token classic só com `read:packages`** para os PCs do leilão
 ## 3. Instalar no PC do leilão
 
 1. Instale o **Docker Desktop**.
-2. Copie a pasta com `Leilao.bat`, `leilao.ps1`, `docker-compose.yml`, `.env.exemplo`, `logo\` e o **`.env`**. Mais fácil ainda: use o [instalador de um comando](../README.md#instalar-num-pc-novo-um-comando), que traz tudo isso sozinho:
+2. Copie a pasta com `Leilao.bat`, `leilao.ps1`, `docker-compose.yml`, `.env.exemplo` e o **`.env`**. Mais fácil ainda: use o [instalador de um comando](../README.md#instalar-num-pc-novo-um-comando), que traz tudo isso sozinho:
    ```
    IMAGEM=ghcr.io/seuusuario/leilao:latest
    GHCR_USUARIO=seuusuario

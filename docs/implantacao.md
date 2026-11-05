@@ -41,7 +41,7 @@ O Gist: https://gist.github.com/PatrickCalorioCarvalho/e49b8d05b90ecfb101c61d6bb
 Coloque esse endereço no `README.md` (no lugar de `URL_DO_INSTALADOR`) e no cabeçalho do `instalar.ps1`.
 Quando mudar o `instalar.ps1`, atualize o Gist com `gh gist edit e49b8d05b90ecfb101c61d6bba3306c6 instalar.ps1`.
 
-Os arquivos que o instalador entrega (`Leilao.bat`, `leilao.ps1`, `docker-compose.yml`, `.env.exemplo`, `logo\`) vão **dentro da imagem**.
+Os arquivos que o instalador entrega (`Leilao.bat`, `leilao.ps1`, `docker-compose.yml`, `.env.exemplo`) vão **dentro da imagem**.
 O Actions os copia para `app/implantacao/` antes do build. Por isso, qualquer mudança neles chega aos PCs com um `git push`.
 
 ## 3. Instalar num PC de leilão
@@ -53,7 +53,6 @@ O PC precisa só do **Docker Desktop**. Copie para uma pasta (ex.: `C:\Leilao`):
 ```
 docker-compose.yml   .env.exemplo
 Leilao.bat   leilao.ps1   (menu: preparar, iniciar, parar, backup, restaurar...)
-logo\logo.jpg       (opcional)
 .env                (preenchido, ver abaixo)
 ```
 

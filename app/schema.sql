@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS leilao (
   endereco_entidade VARCHAR(300) NOT NULL DEFAULT '',
   telefone_entidade VARCHAR(60) NOT NULL DEFAULT '',
   link_nuvem VARCHAR(600) NOT NULL DEFAULT '',   -- link de envio do OneDrive/Drive (opcional)
+  logo MEDIUMBLOB NULL,                          -- logo da entidade (promissórias e relatórios); fica no banco = vai no backup
+  logo_mime VARCHAR(40) NOT NULL DEFAULT '',
+  texto_promissoria TEXT NULL,                   -- texto da promissória com {variáveis}; vazio = texto padrão
   ativo TINYINT NOT NULL DEFAULT 0,
   historico TINYINT NOT NULL DEFAULT 0   -- 1 = só consulta (somente leitura)
 ) DEFAULT CHARSET=utf8mb4;

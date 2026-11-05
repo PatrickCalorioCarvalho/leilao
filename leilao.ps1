@@ -34,7 +34,7 @@ function GarantirDocker {
   if (-not (Ok 'docker info')) { Falha 'o Docker nao respondeu. Abra o Docker Desktop, espere ficar pronto e tente de novo.' }
 }
 function CriarPastas {
-  'local\mysql', 'local\banco\finais', 'local\banco\backups', 'local\historico', 'local\planilhas', 'logo' |
+  'local\mysql', 'local\banco\finais', 'local\banco\backups', 'local\historico', 'local\planilhas' |
     ForEach-Object { New-Item -ItemType Directory -Force $_ | Out-Null }
 }
 function AtualizarImagem {
@@ -76,7 +76,7 @@ function MostrarEnderecos {
 # ======================================================================  backup / restauracao
 function FazerBackup {
   New-Item -ItemType Directory -Force local\banco\backups | Out-Null
-  cmd /c "docker compose exec -T db mysqldump -uroot -pleilao_root --default-character-set=utf8mb4 --databases leilao > local\banco\leilao.novo 2>nul"
+  cmd /c "docker compose exec -T db mysqldump -uroot -pleilao_root --default-character-set=utf8mb4 --hex-blob --databases leilao > local\banco\leilao.novo 2>nul"
   if ($LASTEXITCODE -or (Get-Item local\banco\leilao.novo -ErrorAction SilentlyContinue).Length -lt 100) {
     Remove-Item local\banco\leilao.novo -ErrorAction SilentlyContinue; Falha 'backup falhou: o sistema esta rodando?' }
   Move-Item local\banco\leilao.novo local\banco\leilao.sql -Force

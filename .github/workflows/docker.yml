@@ -19,6 +19,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # arquivos que o instalar.ps1 extrai da imagem para a pasta do PC do leilão (só no CI; o código continua isolado em app/)
+      - name: Arquivos de instalação dentro da imagem
+        run: |
+          mkdir -p app/implantacao
+          cp -r docker-compose.yml .env.exemplo preparar.ps1 preparar.bat iniciar.bat parar.bat abrir-sistema.bat utilitarios logo app/implantacao/
+          cp README.md app/implantacao/LEIA-ME.md
       - id: nome   # o ghcr exige nome em minúsculas
         run: echo "img=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6

@@ -31,7 +31,22 @@ GitHub → foto → *Settings → Developer settings → Personal access tokens 
 
 Esse token só **baixa imagens**. Não dá acesso ao código, aos backups nem a mais nada.
 
+## Publicar o instalador de um comando (uma vez)
+
+O `instalar.ps1` precisa de um endereço público, porque o repositório é privado. Use um **Gist público**; o script não tem segredos:
+```
+gh gist create --public -d "Instalador do Sistema de Leilao" instalar.ps1
+```
+O endereço do comando é `https://gist.githubusercontent.com/<usuário>/<id-do-gist>/raw/instalar.ps1`. Sem o hash de versão, ele sempre aponta para a versão mais nova.
+Coloque esse endereço no `README.md` (no lugar de `URL_DO_INSTALADOR`) e no cabeçalho do `instalar.ps1`.
+Quando mudar o `instalar.ps1`, atualize o Gist com `gh gist edit <id-do-gist> instalar.ps1`.
+
+Os arquivos que o instalador entrega (`docker-compose.yml`, `.bat`, `preparar.ps1`, `utilitarios\`, `logo\`) vão **dentro da imagem**.
+O Actions os copia para `app/implantacao/` antes do build. Por isso, qualquer mudança neles chega aos PCs com um `git push`.
+
 ## 3. Instalar num PC de leilão
+
+> **Jeito mais fácil:** o comando de uma linha do [README](../README.md#instalar-num-pc-novo-um-comando). O processo manual está abaixo.
 
 O PC precisa só do **Docker Desktop**. Copie para uma pasta (ex.: `C:\Leilao`):
 

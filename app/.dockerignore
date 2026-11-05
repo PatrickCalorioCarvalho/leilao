@@ -4,6 +4,7 @@ Dockerfile
 node_modules
 .env
 .env.*
+!implantacao/.env.exemplo
 *.sql
 !schema.sql
 *.xlsx

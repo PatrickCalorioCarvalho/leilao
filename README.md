@@ -9,7 +9,43 @@ registrar o arremate e imprimir a **nota promissória** (A4 duplicada: via do co
 - **Histórico**: cada leilão fica guardado (2018, 2022…) e serve de base para sugerir animais/itens e reaproveitar clientes.
 - **Backup**: automático a cada 1 hora; ao finalizar gera relatório final + backup. Com o Backblaze B2 configurado, tudo sobe sozinho e **criptografado** para um bucket privado (fila offline: envia quando houver internet).
 
-## Começo rápido
+## Instalar num PC novo (um comando)
+
+Do mesmo jeito que o Chocolatey: um comando no PowerShell instala e deixa tudo pronto.
+
+**Antes, tenha à mão:**
+- o **token do GitHub** (classic, só `read:packages`), para baixar o sistema;
+- as chaves do **Backblaze**: a de **envio** (Write Only) e a de **leitura** (Read Only), para restaurar o último backup;
+- a **senha dos backups**.
+
+**Passo a passo:**
+1. Clique com o botão direito no menu Iniciar → **Terminal (Administrador)** ou **Windows PowerShell (Administrador)**.
+   O Administrador só é necessário se o Docker ainda não estiver instalado.
+2. Cole e aperte Enter:
+   ```powershell
+   Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('URL_DO_INSTALADOR'))
+   ```
+3. Responda às perguntas. O valor entre `[ ]` é o recomendado e o **Enter aceita**:
+
+   | Pergunta | O que responder |
+   |---|---|
+   | Instalar o Docker agora? | **Enter** (sim). Depois **reinicie o PC**, abra o Docker Desktop uma vez e **rode o comando de novo** |
+   | Onde instalar? `[C:\Leilao]` | Enter |
+   | Usuário do GitHub `[PatrickCalorioCarvalho]` | Enter |
+   | Token do GitHub | cole o token (não aparece na tela) |
+   | Backblaze: keyID / applicationKey de ENVIO | as da chave **Write Only** (ou Enter para pular) |
+   | Pasta dentro do bucket `[leilao]` | Enter |
+   | Senha para criptografar os backups | a senha dos backups (duas vezes) |
+   | Chave de LEITURA do Backblaze | as da chave **Read Only**. Ela **não fica salva** |
+
+4. No fim, o navegador abre o sistema com o último backup já carregado.
+
+**Atualizar** o sistema num PC já instalado: rode o mesmo comando. Os arquivos são atualizados, e o `.env` e os dados (`local\`) ficam como estavam.
+
+> O instalador ([instalar.ps1](instalar.ps1)) é público e não tem segredos: ele baixa a imagem **privada** com o seu token
+> e extrai dela os arquivos do sistema. Sem o token, ninguém instala.
+
+## Começo rápido (dia a dia)
 
 Pré-requisito (só no PC "servidor"): **Docker Desktop**.
 

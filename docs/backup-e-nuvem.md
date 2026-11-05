@@ -30,13 +30,15 @@ O servidor envia o backup ao Finalizar para um bucket **privado** no Backblaze, 
 
 - **Sem internet ao finalizar?** O arquivo fica na fila (`local/banco/finais/fila/`) e sobe sozinho quando a conexão voltar
   (nova tentativa a cada 5 min, também depois de reiniciar). Antes de desligar o PC, confira que o 💾 **não** mostra `☁`.
-- **Chave só de escrita:** quem tiver o `.env` consegue **enviar**, mas não consegue **ver, baixar nem apagar** os backups.
+- **Chave de envio (Write Only):** quem tiver o `.env` consegue **enviar**, mas não consegue **ver nem baixar** os backups.
+  Atenção: no Backblaze a "Write Only" também permite **apagar**. Por isso ligue o **Object Lock** (passo 2): com ele, nem essa chave apaga um backup.
 - **Criptografado:** com `BACKUP_SENHA`, o arquivo sai do PC já criptografado (AES-256). Nem o Backblaze lê os dados.
 
 ### Configurar (uma vez, ~10 min, grátis até 10 GB, sem cartão)
 1. Crie a conta em **backblaze.com → B2 Cloud Storage**.
 2. **Buckets → Create a Bucket**: nome único (ex.: `leilao-backups-suaentidade`), **Files: Private**, **Default Encryption: Enable**.
-   Opcional: **Object Lock**, para que nem você consiga apagar um backup antes de X dias (protege contra engano e vírus).
+   Depois, no bucket: **Object Lock → Enable** com retenção padrão **Governance, 365 dias**. Assim nenhum backup pode ser apagado
+   por 1 ano, nem com a chave do `.env` (protege contra engano, vírus e `.env` vazado). Os arquivos antigos saem sozinhos depois do prazo, se você quiser.
 3. **Application Keys → Add a New Application Key** (chave de **envio**):
    - Name: `leilao-envio`
    - Allow access to Bucket(s): **o bucket criado** (não "All")

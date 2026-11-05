@@ -1,7 +1,7 @@
 // Envio dos backups para o Backblaze B2 (bucket PRIVADO). Sem dependências: usa a API nativa do B2 com fetch.
 // Tudo passa por uma FILA em disco (local/banco/finais/fila): sem internet, o arquivo espera e o envio é tentado de novo a cada 5 min.
 // Segurança: use uma chave SÓ DE ESCRITA (capacidade writeFiles) presa ao bucket. Quem tiver o .env consegue ENVIAR,
-// mas não consegue listar, baixar nem apagar os backups. Com BACKUP_SENHA, os arquivos sobem criptografados (AES-256-GCM).
+// mas não consegue listar nem baixar (ligue o Object Lock no bucket para que também não consiga apagar). Com BACKUP_SENHA, os arquivos sobem criptografados (AES-256-GCM).
 // Qualquer falha só vai para o log e NUNCA derruba o sistema.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -55,7 +55,8 @@ async function autorizar() {
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(`chave recusada pelo B2 (${j.message || r.status})`);
   const s = j.apiInfo?.storageApi || {};
-  const bucketId = BUCKET_ID || s.allowed?.buckets?.[0]?.id || s.allowed?.bucketId;
+  // API v3: chave presa a um bucket traz storageApi.bucketId (versões antigas usavam "allowed")
+  const bucketId = BUCKET_ID || s.bucketId || s.allowed?.buckets?.[0]?.id || s.allowed?.bucketId;
   if (!bucketId) throw new Error('a chave não está presa a um bucket: defina B2_BUCKET_ID no .env');
   return { apiUrl: s.apiUrl, token: j.authorizationToken, bucketId };
 }

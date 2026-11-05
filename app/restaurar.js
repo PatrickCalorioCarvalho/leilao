@@ -35,7 +35,8 @@ async function baixarUltimo() {
     { headers: { Authorization: 'Basic ' + Buffer.from(`${ID}:${KEY}`).toString('base64') } }).catch(e => sair('sem internet? ' + (e.cause?.code || e.message)));
   const auth = await a.json().catch(() => ({}));
   if (!a.ok) sair('chave de leitura recusada pelo Backblaze (' + (auth.message || a.status) + ')');
-  const s = auth.apiInfo.storageApi, bucket = s.allowed?.buckets?.[0];
+  const s = auth.apiInfo.storageApi;   // API v3: storageApi.bucketId/bucketName (versões antigas: allowed.buckets)
+  const bucket = s.bucketId ? { id: s.bucketId, name: s.bucketName } : s.allowed?.buckets?.[0];
   if (!bucket?.id || !bucket?.name) sair('a chave de leitura precisa estar presa ao bucket dos backups');
   let arquivos = [], inicio = null;
   do {

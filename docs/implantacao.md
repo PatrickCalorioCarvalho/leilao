@@ -76,7 +76,7 @@ Depois é só rodar `Leilao.bat → Iniciar`. Ele faz o login, baixa a versão m
 | Credencial | Permite | Não permite |
 |---|---|---|
 | `GHCR_TOKEN` (`read:packages`) | baixar a imagem do sistema | ver o código, alterar ou publicar |
-| `B2_KEY_ID` / `B2_APP_KEY` (Write Only) | enviar backups novos | listar, baixar ou apagar backups |
+| `B2_KEY_ID` / `B2_APP_KEY` (Write Only) | enviar backups novos (e apagar, se o **Object Lock** estiver desligado) | listar ou baixar backups; apagar com Object Lock ligado |
 | `BACKUP_SENHA` | abrir backups criptografados | nada sem o arquivo, que só você baixa |
 
 Se um `.env` vazar: revogue o token no GitHub e a chave no Backblaze, crie novos e troque nos PCs.

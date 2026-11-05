@@ -26,15 +26,9 @@ Guia único para quem vai instalar e usar o sistema. Cada etapa tem um link para
 
 ## 2. Publicar o sistema (uma vez)
 
-No PC onde está o código:
-```
-gh auth login
-gh repo create leilao --private --source . --push
-```
-O GitHub constrói a imagem sozinho e a guarda em *Packages* (`ghcr.io/<usuário>/leilao`).
-Depois, crie um **token classic só com `read:packages`** para os PCs do leilão.
+Já está feito: o repositório e a imagem (`ghcr.io/patrickcaloriocarvalho/leilao`) são **públicos** e não precisam de token.
 
-**Atualizar depois:** `git add -A && git commit -m "..." && git push`. A imagem nova sai em ~3 min.
+**Atualizar depois:** `git add -A && git commit -m "..." && git push`. A imagem nova sai em ~1 min.
 
 ➡ Detalhes: [implantacao.md](implantacao.md)
 
@@ -43,9 +37,7 @@ Depois, crie um **token classic só com `read:packages`** para os PCs do leilão
 1. Instale o **Docker Desktop**.
 2. Copie a pasta com `Leilao.bat`, `leilao.ps1`, `docker-compose.yml`, `.env.exemplo` e o **`.env`**. Mais fácil ainda: use o [instalador de um comando](../README.md#instalar-num-pc-novo-um-comando), que traz tudo isso sozinho:
    ```
-   IMAGEM=ghcr.io/seuusuario/leilao:latest
-   GHCR_USUARIO=seuusuario
-   GHCR_TOKEN=...
+   IMAGEM=ghcr.io/patrickcaloriocarvalho/leilao:latest
    B2_KEY_ID=...
    B2_APP_KEY=...
    BACKUP_SENHA=...

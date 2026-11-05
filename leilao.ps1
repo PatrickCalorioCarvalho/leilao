@@ -43,8 +43,8 @@ function AtualizarImagem {
     Write-Host "    buscando a versao mais nova ($env:IMAGEM)..."
     docker pull -q $env:IMAGEM | Out-Null
     if ($LASTEXITCODE -eq 0) { docker tag $env:IMAGEM leilao-app:latest }
-    elseif (Ok 'docker image inspect leilao-app:latest') { Aviso 'sem internet ou token invalido: usando a versao que ja esta neste PC.' }
-    else { Falha 'nao consegui baixar a imagem. Confira a internet e GHCR_USUARIO / GHCR_TOKEN (opcao Configurar).' }
+    elseif (Ok 'docker image inspect leilao-app:latest') { Aviso 'sem internet: usando a versao que ja esta neste PC.' }
+    else { Falha 'nao consegui baixar a imagem. Confira a internet.' }
   } elseif (Test-Path app\Dockerfile) {
     docker compose build app
     if ($LASTEXITCODE) { Falha 'nao consegui construir a imagem.' }
@@ -174,8 +174,6 @@ function Cmd-Configurar {
   $cfg = $script:cfg
   $campos = @(
     @{ k = 'IMAGEM';       t = 'Imagem do sistema (vazio = construir do codigo)';   d = 'ghcr.io/patrickcaloriocarvalho/leilao:latest' },
-    @{ k = 'GHCR_USUARIO'; t = 'Usuario do GitHub';                                 d = 'PatrickCalorioCarvalho' },
-    @{ k = 'GHCR_TOKEN';   t = 'Token do GitHub (classic, so read:packages)';       s = $true },
     @{ k = 'B2_KEY_ID';    t = 'Backblaze: keyID da chave de ENVIO (Write Only)';  d = '' },
     @{ k = 'B2_APP_KEY';   t = 'Backblaze: applicationKey da chave de ENVIO';       s = $true },
     @{ k = 'B2_PASTA';     t = 'Backblaze: pasta dentro do bucket';                 d = 'leilao' },
@@ -208,7 +206,7 @@ function Cmd-Configurar {
 
 function Cmd-Preparar {
   # PC novo ou recuperacao: configuracao + Docker + pastas + imagem + ultimo backup + sistema no ar
-  $faltando = (-not $script:cfg['IMAGEM'] -and -not (Test-Path app\Dockerfile)) -or ($script:cfg['IMAGEM'] -and -not $script:cfg['GHCR_TOKEN'])
+  $faltando = (-not $script:cfg['IMAGEM'] -and -not (Test-Path app\Dockerfile))
   if ($Configurar -or $faltando -or (Read-Host "`n    Revisar a configuracao? (s/N)") -match '^[sS]') { Cmd-Configurar }
   Passo 'Docker';  GarantirDocker; Write-Host '    ok'
   Passo 'Pastas';  CriarPastas;    Write-Host '    ok'
@@ -306,7 +304,7 @@ function Menu {
     Write-Host '   2  Abrir o sistema (impressao direta)'
     Write-Host '   3  Parar'
     Write-Host '   4  Restaurar backup (o backup e feito ao Finalizar o leilao, no sistema)'
-    Write-Host '   5  Configurar (.env: GitHub, Backblaze, senha, OneDrive)'
+    Write-Host '   5  Configurar (.env: Backblaze, senha, OneDrive)'
     Write-Host '   6  Preparar/recuperar este PC (tudo de uma vez)'
     Write-Host '   7  Importar planilha antiga'
     Write-Host '   8  Abrir backup criptografado (.enc)'

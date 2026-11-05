@@ -14,9 +14,10 @@ registrar o arremate e imprimir a **nota promissória** (A4 duplicada: via do co
 Do mesmo jeito que o Chocolatey: um comando no PowerShell instala e deixa tudo pronto.
 
 **Antes, tenha à mão:**
-- o **token do GitHub** (classic, só `read:packages`), para baixar o sistema;
 - as chaves do **Backblaze**: a de **envio** (Write Only) e a de **leitura** (Read Only), para restaurar o último backup;
 - a **senha dos backups**.
+
+O sistema é público e não precisa de conta nem de token do GitHub.
 
 **Passo a passo:**
 1. Clique com o botão direito no menu Iniciar → **Terminal (Administrador)** ou **Windows PowerShell (Administrador)**.
@@ -31,19 +32,19 @@ Do mesmo jeito que o Chocolatey: um comando no PowerShell instala e deixa tudo p
    |---|---|
    | Instalar o Docker agora? | **Enter** (sim). Depois **reinicie o PC**, abra o Docker Desktop uma vez e **rode o comando de novo** |
    | Onde instalar? `[C:\Leilao]` | Enter |
-   | Usuário do GitHub `[PatrickCalorioCarvalho]` | Enter |
-   | Token do GitHub | cole o token (não aparece na tela) |
+   | Imagem do sistema `[ghcr.io/...]` | Enter |
    | Backblaze: keyID / applicationKey de ENVIO | as da chave **Write Only** (ou Enter para pular) |
    | Pasta dentro do bucket `[leilao]` | Enter |
    | Senha para criptografar os backups | a senha dos backups (duas vezes) |
+   | Pasta do OneDrive | Enter (vazio) |
    | Chave de LEITURA do Backblaze | as da chave **Read Only**. Ela **não fica salva** |
 
 4. No fim, o navegador abre o sistema com o último backup já carregado.
 
 **Atualizar** o sistema num PC já instalado: rode o mesmo comando. Os arquivos são atualizados, e o `.env` e os dados (`local\`) ficam como estavam.
 
-> O instalador ([instalar.ps1](instalar.ps1)) é público e não tem segredos: ele baixa a imagem **privada** com o seu token
-> e extrai dela os arquivos do sistema. Sem o token, ninguém instala.
+> O código e a imagem são públicos e não têm dados de ninguém. Os dados de cada entidade (leilões, arrematantes, logo)
+> ficam só no banco do PC e nos backups **criptografados** do Backblaze, que exigem as suas chaves e a sua senha.
 
 ## Começo rápido (dia a dia)
 
@@ -123,7 +124,7 @@ Um leilão novo herda os dados, o logo e o texto do leilão em uso.
 
 - [docs/uso.md](docs/uso.md) — como usar cada tela no dia do leilão
 - [docs/backup-e-nuvem.md](docs/backup-e-nuvem.md) — backup, relatório final, Backblaze B2 e como recuperar
-- [docs/implantacao.md](docs/implantacao.md) — GitHub privado, imagem no GitHub (ghcr.io) e instalar num PC só com o `.env`
+- [docs/implantacao.md](docs/implantacao.md) — publicar versões, o instalador de um comando e segurança
 - [docs/arquitetura.md](docs/arquitetura.md) — como o sistema é montado, banco de dados e API
 - [docs/dados-historicos.md](docs/dados-historicos.md) — importar planilhas antigas (2018, 2022…), restaurar e compartilhar
 - [docs/instalacao-offline.md](docs/instalacao-offline.md) — instalar sem internet e solução de problemas

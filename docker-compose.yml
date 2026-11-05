@@ -10,7 +10,7 @@ services:
       MYSQL_PASSWORD: leilao
       TZ: America/Sao_Paulo
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    ports: ["3306:3306"]            # para rodar INSERTs manuais (HeidiSQL/Workbench/DBeaver)
+    ports: ["127.0.0.1:3306:3306"]  # SO neste PC (HeidiSQL/Workbench/DBeaver). Nunca abra para a rede: as senhas padrao sao publicas
     volumes:
       - ./local/mysql:/var/lib/mysql        # arquivos do banco ficam NESTA pasta
       - ./local/banco:/docker-entrypoint-initdb.d:ro   # local/banco/leilao.sql é carregado sozinho quando local/mysql/ está vazio

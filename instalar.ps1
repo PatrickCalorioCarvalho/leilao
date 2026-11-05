@@ -2,9 +2,9 @@
 #
 #   Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/PatrickCalorioCarvalho/e49b8d05b90ecfb101c61d6bba3306c6/raw/instalar.ps1'))
 #
-# O que faz: instala/abre o Docker Desktop, baixa a imagem privada do sistema (pede o token do GitHub),
+# O que faz: instala/abre o Docker Desktop, baixa a imagem do sistema (publica, sem login),
 # extrai os arquivos para a pasta escolhida e roda "leilao.ps1 preparar" (configura o .env, restaura o ultimo backup e sobe o sistema).
-# Este arquivo e PUBLICO e nao contem segredos: token, chaves e senhas sao pedidos na hora.
+# Nao contem segredos: as chaves do Backblaze e a senha dos backups sao pedidas na hora.
 # Rodar de novo = ATUALIZA os arquivos do sistema (o .env e a pasta local\ com os dados sao preservados).
 
 function Install-Leilao {
@@ -50,20 +50,22 @@ function Install-Leilao {
   }
   if ($cfg.IMAGEM) { $imagem = $cfg.IMAGEM }
 
-  # ---- 3. imagem privada
-  Passo 'Acesso ao sistema (GitHub)'
-  $padrao = if ($cfg.GHCR_USUARIO) { $cfg.GHCR_USUARIO } else { $usuarioPadrao }
-  $usuario = Read-Host "    Usuario do GitHub [$padrao]"
-  if (-not $usuario.Trim()) { $usuario = $padrao }
-  $dica = if ($cfg.GHCR_TOKEN) { '[ja configurado - Enter mantem]' } else { '(classic, so read:packages)' }
-  $token = Segredo "    Token do GitHub $dica"
-  if (-not $token) { $token = $cfg.GHCR_TOKEN }
-  if (-not $token) { Erro 'o token e obrigatorio (GitHub > Settings > Developer settings > Tokens (classic) > read:packages).'; return }
-  $token | docker login ghcr.io -u $usuario --password-stdin 2>&1 | Out-Null
-  if ($LASTEXITCODE) { Erro 'o GitHub recusou o usuario/token.'; return }
-  Write-Host "    baixando $imagem ..."
+  # ---- 3. imagem do sistema (publica: nao precisa de login; se um dia ficar privada, pede o token)
+  Passo 'Baixando o sistema'
+  $usuario = ''; $token = ''
+  if ($cfg.GHCR_TOKEN) { $cfg.GHCR_TOKEN | docker login ghcr.io -u $cfg.GHCR_USUARIO --password-stdin 2>&1 | Out-Null }
   docker pull $imagem
-  if ($LASTEXITCODE) { Erro 'nao consegui baixar a imagem.'; return }
+  if ($LASTEXITCODE) {
+    Write-Host '    A imagem pediu login (repositorio privado?).' -ForegroundColor Yellow
+    $usuario = Read-Host "    Usuario do GitHub [$usuarioPadrao]"
+    if (-not $usuario.Trim()) { $usuario = $usuarioPadrao }
+    $token = Segredo '    Token do GitHub (classic, so read:packages)'
+    if (-not $token) { Erro 'sem internet ou sem acesso a imagem.'; return }
+    $token | docker login ghcr.io -u $usuario --password-stdin 2>&1 | Out-Null
+    if ($LASTEXITCODE) { Erro 'o GitHub recusou o usuario/token.'; return }
+    docker pull $imagem
+    if ($LASTEXITCODE) { Erro 'nao consegui baixar a imagem.'; return }
+  }
 
   # ---- 4. arquivos do sistema (vem dentro da imagem)
   Passo 'Arquivos do sistema'
@@ -77,7 +79,8 @@ function Install-Leilao {
     ForEach-Object { Remove-Item (Join-Path $pasta $_) -Recurse -Force -ErrorAction SilentlyContinue }
   $novo = -not (Test-Path $envf)
   if ($novo) {
-    $linhas = @("IMAGEM=$imagem", "GHCR_USUARIO=$usuario", "GHCR_TOKEN=$token")
+    $linhas = @("IMAGEM=$imagem")
+    if ($token) { $linhas += @("GHCR_USUARIO=$usuario", "GHCR_TOKEN=$token") }
     [IO.File]::WriteAllLines($envf, [string[]]$linhas, (New-Object Text.UTF8Encoding $false))
   }
   Write-Host "    ok: $pasta"

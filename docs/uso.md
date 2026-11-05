@@ -78,7 +78,7 @@ Filtros: **arrematante** (ou clique no nome na tabela "Por arrematante"), **doa�
 
 ## Depois do leilão
 1. Relatório → imprimir / exportar CSV (opcional).
-2. Aba **Leilões → ✅ Finalizar leilão**: gera o **relatório final + backup completo** e **trava** o leilão como histórico. Em seguida clique **☁ Baixar pacote (.zip) e abrir o OneDrive** e solte o arquivo na página que abrir. Detalhes (e como criar o link de envio) em [backup-e-nuvem.md](backup-e-nuvem.md).
-3. `Leilao.bat → Parar` — faz um último backup e desliga.
+2. Aba **Leilões → ✅ Finalizar leilão**: gera o **relatório final + backup completo** e **trava** o leilão como histórico. Com o Backblaze configurado, o backup sobe sozinho (criptografado). Detalhes em [backup-e-nuvem.md](backup-e-nuvem.md).
+3. Confira que o 💾 no topo **não** mostra `☁` (tudo enviado) e então `Leilao.bat` → **3 – Parar**.
 
-> O sistema também salva sozinho **a cada 1 hora** (sobrescrevendo o anterior), sem parar nada. O ícone 💾 no topo mostra a hora do último backup.
+> **O backup é feito só ao Finalizar.** Até lá, os dados ficam no banco deste PC. Para recuperar: `Leilao.bat` → **4 – Restaurar**.

@@ -14,7 +14,7 @@ Os dois serviços rodam em Docker (`docker-compose.yml`) no PC servidor. Os dema
 |---|---|
 | `app/server.js` | Servidor HTTP: API JSON, arquivos estáticos, eventos em tempo real |
 | `app/db.js` | Conexão MySQL, espera o banco subir, cria/migra tabelas na partida |
-| `app/backup.js` | Dump SQL completo, relatório final (HTML/CSV), pastas local/nuvem e backup automático (1x/hora, arquivo único) |
+| `app/backup.js` | Dump SQL completo, relatório final (HTML/CSV), pastas local/nuvem; o backup é feito só ao Finalizar o leilão |
 | `app/schema.sql` | Definição das tabelas |
 | `app/public/index.html`, `app.js`, `style.css` | Telas (uma página, abas por `#hash`: mesa, lotes, pessoas, promissorias, relatorio, leiloes) |
 | `app/public/imprimir.html` | Layout e impressão das promissórias + valor por extenso |

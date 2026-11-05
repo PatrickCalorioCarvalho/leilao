@@ -1,88 +1,76 @@
-# Backup, relatório final e envio para o OneDrive
+# Backup: guardar ao finalizar, recuperar quando precisar
 
-O objetivo: **nunca mais perder o relatório do leilão**. Tudo funciona só com **Docker + navegador** no computador do leilão;
-não precisa ter OneDrive, Node ou qualquer outro programa instalado lá.
+O backup tem **duas rotinas**, e só elas:
 
-## Os níveis de proteção
-
-| O quê | Quando | Onde fica |
+| Rotina | Como | O que acontece |
 |---|---|---|
-| **Backup automático** | A cada **1 hora**, só se houve alteração. Grava num **único arquivo** (`leilao_auto.sql`) que **sobrescreve** o anterior. Roda em segundo plano — **não para nem trava o sistema**; se falhar, só registra no log | `local/banco/finais/auto/` |
-| **Relatório final + backup** | Quando você clica **✅ Finalizar leilão** (Leilões) ou **📦 Salvar relatório final + backup** (Relatório). Também há **💾 Salvar backup agora** | `local/banco/finais/<data>_<leilão>_<tipo>/` no servidor |
-| **Pacote .zip para o OneDrive** | Botão **☁ Baixar pacote (.zip) e abrir o OneDrive** | Baixa para o aparelho que clicou e abre a sua pasta do OneDrive para você soltar o arquivo |
+| **Guardar** | No sistema: **Leilões → ✅ Finalizar leilão** | Gera o relatório final + **backup completo**, grava **neste PC** (`local/banco/finais/`), **envia ao Backblaze** (criptografado) e trava o leilão como histórico |
+| **Recuperar** | `Leilao.bat` → **4 – Restaurar** (ou **6 – Preparar**, num PC novo) | Volta o banco a partir do último leilão finalizado: do Backblaze, deste PC ou de um arquivo |
 
-O **pacote .zip** é um único arquivo com tudo:
-- `relatorio-final.html` — totais, por arrematante (com entrega × doado) e lista de todos os lotes, com logo e dados da entidade; abre em qualquer navegador e imprime.
-- `lotes.csv` e `resumo-geral.xlsx` — todos os lotes no formato da planilha antiga (CSV e Excel com as abas ResumoGeral/ResumoDetalhado).
-- `entrega.html` — relatório de entrega (fichas por comprador, sem os doados), pronto para imprimir.
-- `leilao.sql` — **backup completo** do banco (todos os leilões e pessoas).
+Não existe backup automático de hora em hora. **Durante o leilão, os dados ficam no banco deste PC** (`local/mysql`);
+eles só viram backup ao **Finalizar**.
 
-**Finalizar** = salva tudo e **trava** o leilão como histórico (somente leitura). Se não conseguir gravar, **não trava** e mostra o erro.
-O ícone 💾 no topo mostra o horário do último backup (e `☁N` quando há N arquivos esperando internet para subir ao Backblaze).
+## O que vai no backup
+O backup é **o banco inteiro**: todos os leilões, lotes, arrematantes **e** tudo da entidade, que fica no banco:
+dados (beneficiário, CNPJ, endereço, cidade), **logo** e **texto da promissória**. Restaurar traz tudo de volta, igual estava.
 
-## Envio automático para o Backblaze B2 (recomendado)
+Cada Finalizar gera uma pasta `local/banco/finais/<data>_<leilão>_final/` (e o mesmo conteúdo em `.zip` no Backblaze) com:
+- `leilao.sql`: **o backup completo do banco** (é o que a restauração usa);
+- `relatorio-final.html`: totais, por arrematante e todos os lotes, com logo e dados da entidade;
+- `lotes.csv` e `resumo-geral.xlsx`: no formato da planilha antiga;
+- `entrega.html`: relatório de entrega (fichas por comprador, sem os doados).
 
-O próprio servidor envia os backups para um bucket **privado** no Backblaze B2, sem link público e sem ninguém precisar arrastar arquivo:
+**Finalizar** só trava o leilão se conseguir gravar o backup; se falhar, mostra o erro e não trava.
+O 💾 no topo mostra o horário do último backup e `☁N` quando há N arquivos esperando internet para subir.
 
-| O quê | Nome no bucket |
-|---|---|
-| Relatório final + backup (Finalizar / Salvar) | `leilao/finais/<data>_<leilão>_<tipo>.zip.enc` (o mesmo conteúdo do pacote .zip) |
-| Backup automático de hora em hora | `leilao/auto/leilao_auto.sql.gz.enc`: sempre o mesmo nome; o B2 guarda as versões anteriores |
+## Backblaze B2
 
-- **Sem internet?** O arquivo fica na fila (`local/banco/finais/fila/`) e sobe sozinho quando a conexão voltar (tentativa a cada 5 min, também depois de reiniciar). Nada trava.
-- **Chave só de escrita:** quem tiver o `.env` (ou mexer no PC do leilão) consegue **enviar**, mas não consegue **ver, baixar nem apagar** os backups.
-- **Criptografado:** com `BACKUP_SENHA`, os arquivos saem do PC já criptografados (AES-256). Nem o Backblaze consegue ler os CPFs e endereços.
+O servidor envia o backup ao Finalizar para um bucket **privado** no Backblaze, sem link público:
+`leilao/finais/<data>_<leilão>_final.zip.enc`.
+
+- **Sem internet ao finalizar?** O arquivo fica na fila (`local/banco/finais/fila/`) e sobe sozinho quando a conexão voltar
+  (nova tentativa a cada 5 min, também depois de reiniciar). Antes de desligar o PC, confira que o 💾 **não** mostra `☁`.
+- **Chave só de escrita:** quem tiver o `.env` consegue **enviar**, mas não consegue **ver, baixar nem apagar** os backups.
+- **Criptografado:** com `BACKUP_SENHA`, o arquivo sai do PC já criptografado (AES-256). Nem o Backblaze lê os dados.
 
 ### Configurar (uma vez, ~10 min, grátis até 10 GB, sem cartão)
 1. Crie a conta em **backblaze.com → B2 Cloud Storage**.
 2. **Buckets → Create a Bucket**: nome único (ex.: `leilao-backups-suaentidade`), **Files: Private**, **Default Encryption: Enable**.
-   Opcional: **Object Lock** ligado, para que nem você consiga apagar um backup antes de X dias (protege contra apagar por engano e contra vírus).
-3. No bucket → **Lifecycle Settings** → *Keep prior versions for this number of days*: **30**. Isso guarda 30 dias de versões do backup automático.
-4. **Application Keys → Add a New Application Key**:
+   Opcional: **Object Lock**, para que nem você consiga apagar um backup antes de X dias (protege contra engano e vírus).
+3. **Application Keys → Add a New Application Key** (chave de **envio**):
    - Name: `leilao-envio`
    - Allow access to Bucket(s): **o bucket criado** (não "All")
    - Type of Access: **Write Only**
 
    Copie o **keyID** e o **applicationKey**: a chave só aparece uma vez.
-5. Crie uma **segunda** chave, para restaurar: Name `leilao-restaurar`, o mesmo bucket, Type of Access **Read Only**.
-   Ela **não vai no `.env`**: guarde no seu gerenciador de senhas. O `Leilao.bat → Preparar` pede essa chave só na hora de baixar o backup.
-6. No PC do leilão, preencha o `.env` (modelo em `.env.exemplo`):
-   ```
-   B2_KEY_ID=<keyID>
-   B2_APP_KEY=<applicationKey>
-   BACKUP_SENHA=<uma senha forte; guarde-a no seu gerenciador de senhas>
-   ```
-7. Rode `Leilao.bat → Iniciar`; deve aparecer **Backblaze: ligado**. Clique **💾 Salvar backup agora** e confira o arquivo em *Browse Files* no site.
+4. Crie uma **segunda** chave (de **leitura**, para restaurar): Name `leilao-restaurar`, o mesmo bucket, Type of Access **Read Only**.
+   Ela **não vai no `.env`**: guarde no seu gerenciador de senhas. O Restaurar/Preparar pede essa chave só na hora.
+5. No PC do leilão: `Leilao.bat` → **5 – Configurar** → informe a chave de envio e a **senha dos backups**.
+6. `Leilao.bat` → **1 – Iniciar**: deve aparecer **Backblaze: ligado**.
+7. Teste: no sistema, crie um leilão `TESTE` (aba Leilões) e clique **✅ Finalizar leilão**. Confira o arquivo em *Browse Files* no site.
+   O leilão de teste fica como histórico; para apagar, use **🔓 Destravar** e depois **🗑 Excluir**.
 
 > **Perdeu a `BACKUP_SENHA` = perdeu os backups criptografados.** Guarde-a fora do PC do leilão.
 
-### Recuperar um backup do Backblaze
-**Automático:** `Leilao.bat` → **5 – Restaurar** → informe a chave **Read Only** → ele baixa o backup mais recente, descriptografa e restaura.
-Arrastar um arquivo `.enc`, `.zip` ou `.sql` em cima do `Leilao.bat` restaura aquele arquivo, sem internet.
+## Recuperar
+`Leilao.bat` → **4 – Restaurar** pergunta de onde:
 
-**Manual:**
-1. Entre no site da Backblaze **com a sua conta** (a chave do `.env` não permite baixar) → *Browse Files* → baixe o arquivo.
-2. `Leilao.bat` → **9 – Abrir backup criptografado**, arraste o `.enc` para a janela: ele pede a senha e gera o `.zip` (relatório final) ou o `.sql` (automático).
-3. Para voltar o banco: pegue o `leilao.sql`, coloque em `local/banco/leilao.sql` e rode `Leilao.bat → Restaurar`.
+| Opção | De onde vem |
+|---|---|
+| **1** (Enter) | o último leilão finalizado **no Backblaze**: pede a chave **Read Only** e a senha dos backups |
+| **2** | o último leilão finalizado **neste PC** (`local/banco/finais/`) |
+| **3** | um **arquivo**: `.enc` baixado do Backblaze, o `.zip` do relatório final ou um `leilao.sql` (pendrive) |
 
-## Configurar o envio para o OneDrive (uma vez)
+Antes de substituir, o banco atual é guardado em `local/banco/backups/leilao_antes_<data>.sql`.
 
-Como o sistema roda offline, o envio é feito **pelo navegador, por você**, num passo simples (arrastar o arquivo):
+**Atalho:** arraste o arquivo (`.enc`, `.zip` ou `.sql`) em cima do `Leilao.bat`.
+**PC novo:** o instalador de um comando (ou **6 – Preparar**) já restaura o último backup do Backblaze sozinho.
 
-1. No OneDrive (navegador, com a sua conta): crie uma pasta, ex.: **Leilao-backups**.
-2. Na pasta: **Compartilhar → "Solicitar arquivos"** (ou "Request files") e copie o link gerado. Quem abre esse link **só consegue enviar arquivos**, sem ver o resto do seu OneDrive.
-3. No sistema: **Leilões → Configuração → Link de envio do OneDrive** → cole o link → Salvar. (Os próximos leilões herdam o link.)
+**Só quero ver o relatório de um backup criptografado:** baixe o `.enc` no site do Backblaze (com a sua conta) →
+`Leilao.bat` → **8 – Abrir backup criptografado** → ele gera o `.zip` com o relatório final, as planilhas e o `leilao.sql`.
 
-Depois, no fim do leilão: **✅ Finalizar leilão** → **☁ Baixar pacote (.zip) e abrir o OneDrive** → o zip baixa e a página do OneDrive abre → **solte o zip lá**. Se o local estiver sem internet, guarde o zip e envie depois (ele fica na pasta Downloads; e o backup também está em `local/banco/finais/`).
-
-> Sem o link configurado, o botão só baixa o zip e avisa como configurar.
-
-## Opcional: pasta sincronizada no servidor
-Se o PC do leilão tiver OneDrive/Google Drive instalado, `Leilao.bat → Configurar` define uma pasta sincronizada que receberá
-automaticamente cada relatório final e backup (o OneDrive envia quando houver internet). Cria um `.env` **só nesse PC**.
-Se a pasta não existir, o `Leilao.bat → Iniciar` avisa e segue sem ela — nada quebra.
-
-## Restaurar
-- `Leilao.bat → Restaurar` usa `local/banco/leilao.sql` (gerado por `Leilao.bat → Backup`).
-- Para restaurar de um pacote, relatório final ou backup automático: pegue o `leilao.sql`, coloque em `local/banco/leilao.sql` e rode `Leilao.bat → Restaurar`
-  (ou, num PC novo/limpo, com a pasta `local/mysql/` vazia, rode `Leilao.bat → Iniciar` e ele carrega sozinho).
+## Opcional: OneDrive
+- **Pasta sincronizada no servidor:** se o PC do leilão tiver OneDrive/Google Drive instalado, informe a pasta em **5 – Configurar**.
+  Cada Finalizar também é copiado para lá (o OneDrive envia quando houver internet).
+- **Pelo navegador:** em **Leilões → Configuração**, cole um link "Solicitar arquivos" do OneDrive. Depois de finalizar,
+  **☁ Baixar pacote (.zip) e abrir o OneDrive** baixa o zip e abre a página para você soltar o arquivo.

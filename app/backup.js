@@ -1,4 +1,4 @@
-// Backup completo + relatório final. Grava em:
+// Backup completo + relatório final, feito ao FINALIZAR o leilão (não há backup automático). Grava em:
 //   /backups/local  (pasta local/banco/finais deste projeto)   -> sempre
 //   /backups/nuvem  (pasta do OneDrive / Google Drive)   -> sincroniza sozinho quando houver internet
 //   Backblaze B2    (se B2_KEY_ID/B2_APP_KEY no .env)   -> fila de envio, ver b2.js
@@ -133,29 +133,10 @@ export async function salvarTudo(leilao, tipo = 'backup') {
   return resultado;
 }
 
-// ---- backup automático: 1x por hora, só se houve alteração, num ÚNICO arquivo (sobrescreve o anterior).
-// Roda em segundo plano; qualquer falha só vai para o log e NUNCA derruba o sistema.
+// ---- o backup acontece SÓ ao finalizar o leilão (salvarTudo, acima). Aqui só liga a fila de envio ao Backblaze,
+// que retoma sozinha o que ficou pendente (ex.: finalizou sem internet).
 export let ultimo = null;
-let sujo = false, rodando = false;
-export const marcarAlteracao = () => { sujo = true; };
-export function iniciarAuto(minutos = 60) {
-  iniciarB2(LOCAL);
-  setInterval(async () => {
-    if (!sujo || rodando) return;
-    rodando = true; sujo = false;
-    try {
-      const dir = path.join(LOCAL, 'auto'); fs.mkdirSync(dir, { recursive: true });
-      const tmp = path.join(dir, 'leilao_auto.tmp'), final = path.join(dir, 'leilao_auto.sql');
-      const sqlTxt = await dumpSql();
-      fs.writeFileSync(tmp, sqlTxt, 'utf8');
-      fs.renameSync(tmp, final); // troca só quando o arquivo novo está completo
-      // no B2 o nome é sempre o mesmo: o bucket guarda as versões anteriores (a regra de ciclo de vida define por quantos dias)
-      const b2 = enfileirarB2('auto/leilao_auto.sql.gz', zlib.gzipSync(sqlTxt));
-      ultimo = { quando: new Date().toISOString(), tipo: 'auto', nuvem: b2 };
-    } catch (e) { console.log('Backup automático falhou (o sistema segue normal):', e.message); sujo = true; }
-    finally { rodando = false; }
-  }, minutos * 60 * 1000).unref();
-}
+export function iniciarBackup() { iniciarB2(LOCAL); }
 
 // ======================================================================
 // Exportação no formato da planilha antiga (ResumoGeral / ResumoDetalhado)

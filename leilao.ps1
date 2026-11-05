@@ -1,7 +1,7 @@
 # Sistema de Leilao - todos os comandos num lugar so.
 #   Dois cliques em Leilao.bat           -> menu
 #   Leilao.bat <comando> [arg1] [arg2]   -> direto. Comandos:
-#     iniciar | abrir [tela] | parar | backup | restaurar [arquivo] | configurar | preparar [-Configurar] [-SemRestaurar]
+#     iniciar | abrir [tela] | parar | restaurar [arquivo] | configurar | preparar [-Configurar] [-SemRestaurar]
 #     importar <planilha> [ano] | descriptografar <arquivo.enc> | firewall | offline-empacotar | offline-instalar
 #   Arrastar um arquivo em cima do Leilao.bat: planilha (.xlsx/.csv) = importar; backup (.enc/.zip/.sql/.gz) = restaurar
 param([string]$Comando = 'menu', [string]$Arg1 = '', [string]$Arg2 = '', [switch]$Configurar, [switch]$SemRestaurar, [switch]$SemPausa)
@@ -74,16 +74,19 @@ function MostrarEnderecos {
 }
 
 # ======================================================================  backup / restauracao
-function FazerBackup {
+# O backup "de verdade" e feito pelo sistema ao FINALIZAR o leilao (local\banco\finais + Backblaze).
+# Aqui so existe a rede de seguranca da restauracao: antes de substituir o banco, guarda o atual.
+function GuardarAtual {
   New-Item -ItemType Directory -Force local\banco\backups | Out-Null
-  cmd /c "docker compose exec -T db mysqldump -uroot -pleilao_root --default-character-set=utf8mb4 --hex-blob --databases leilao > local\banco\leilao.novo 2>nul"
-  if ($LASTEXITCODE -or (Get-Item local\banco\leilao.novo -ErrorAction SilentlyContinue).Length -lt 100) {
-    Remove-Item local\banco\leilao.novo -ErrorAction SilentlyContinue; Falha 'backup falhou: o sistema esta rodando?' }
-  Move-Item local\banco\leilao.novo local\banco\leilao.sql -Force
-  $d = Get-Date -f 'yyyy-MM-dd_HHmm'
-  Copy-Item local\banco\leilao.sql "local\banco\backups\leilao_$d.sql"
-  Write-Host "    backup salvo: local\banco\leilao.sql (copia em local\banco\backups\leilao_$d.sql)"
-  if ($env:NUVEM_DIR) { Copy-Item local\banco\leilao.sql (Join-Path $env:NUVEM_DIR "leilao_$d.sql"); Write-Host "    copia na pasta da nuvem: $env:NUVEM_DIR" }
+  $f = "local\banco\backups\leilao_antes_$(Get-Date -f yyyy-MM-dd_HHmm).sql"
+  cmd /c "docker compose exec -T db mysqldump -uroot -pleilao_root --default-character-set=utf8mb4 --hex-blob --databases leilao > $f 2>nul"
+  if ($LASTEXITCODE -or (Get-Item $f -ErrorAction SilentlyContinue).Length -lt 100) { Remove-Item $f -ErrorAction SilentlyContinue; return $false }
+  Write-Host "    banco atual guardado em $f"; return $true
+}
+# ultimo leilao finalizado NESTE PC (local\banco\finais\<data>_<leilao>_final\leilao.sql)
+function UltimoFinalLocal {
+  Get-ChildItem local\banco\finais -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'leilao.sql') } |
+    Sort-Object Name -Descending | Select-Object -First 1 | ForEach-Object { Join-Path $_.FullName 'leilao.sql' }
 }
 # baixa o ultimo backup do Backblaze (ou abre um arquivo) e deixa em local\banco\leilao.novo
 function ObterBackup($arquivo) {
@@ -139,27 +142,30 @@ function Cmd-Abrir($tela) {
 }
 
 function Cmd-Parar {
-  Passo 'Backup antes de parar'
-  try { FazerBackup } catch { Aviso $_.Exception.Message }
+  # lembrete: o backup e feito ao Finalizar o leilao (no sistema), nao ao parar
   Passo 'Parando'; docker compose stop; Write-Host '    sistema parado.'
 }
 
-function Cmd-Backup { Passo 'Backup do banco'; FazerBackup }
-
 function Cmd-Restaurar($arquivo) {
+  # volta o banco a partir de um backup feito ao FINALIZAR (Backblaze, este PC ou um arquivo/pendrive)
   Passo 'Restaurar backup'
   GarantirDocker; CriarPastas
   if (-not $arquivo) {
-    Write-Host '    1 = ultimo backup do Backblaze   2 = local\banco\leilao.sql   3 = outro arquivo'
-    switch (Read-Host '    Qual? [1]') { '2' { $local = $true } '3' { $arquivo = PedirArquivo 'Arquivo do backup' } }
+    $localFinal = UltimoFinalLocal
+    Write-Host '    1 = ultimo leilao finalizado, do Backblaze'
+    Write-Host ('    2 = ultimo leilao finalizado neste PC' + $(if ($localFinal) { " ($(Split-Path (Split-Path $localFinal) -Leaf))" } else { ' (nenhum ainda)' }))
+    Write-Host '    3 = um arquivo (pendrive, download): .enc, .zip ou .sql'
+    switch (Read-Host '    Qual? [1]') {
+      '2' { if (-not $localFinal) { Falha 'nenhum leilao finalizado neste PC.' }; $arquivo = $localFinal }
+      '3' { $arquivo = PedirArquivo 'Arquivo do backup' }
+    }
   }
   if (TemBanco) {
     Aviso 'Isto SUBSTITUI o banco atual (o atual fica guardado em local\banco\backups).'
     if ((Read-Host '    Digite SIM para continuar') -ne 'SIM') { Write-Host '    cancelado.'; return }
-    try { FazerBackup } catch { }   # guarda o estado atual antes, se o sistema estiver rodando
+    if (-not (GuardarAtual)) { Aviso 'nao consegui guardar o banco atual (o sistema esta parado?). Seguindo mesmo assim.' }
   }
-  if (-not $local) { ObterBackup $arquivo }
-  elseif (-not (Test-Path local\banco\leilao.sql)) { Falha 'nao existe local\banco\leilao.sql.' }
+  ObterBackup $arquivo
   AplicarBackup; EsperarSistema | Out-Null; MostrarEnderecos
 }
 
@@ -281,7 +287,6 @@ function Executar($cmd, $a1, $a2) {
     'iniciar'           { Cmd-Iniciar }
     'abrir'             { Cmd-Abrir $a1 }
     'parar'             { Cmd-Parar }
-    'backup'            { Cmd-Backup }
     'restaurar'         { Cmd-Restaurar $a1 }
     'configurar'        { Cmd-Configurar }
     'preparar'          { Cmd-Preparar }
@@ -299,20 +304,19 @@ function Menu {
     Write-Host '  ==========  Sistema de Leilao  ==========' -ForegroundColor Green
     Write-Host '   1  Iniciar o sistema'
     Write-Host '   2  Abrir o sistema (impressao direta)'
-    Write-Host '   3  Parar (faz backup antes)'
-    Write-Host '   4  Backup agora'
-    Write-Host '   5  Restaurar backup'
-    Write-Host '   6  Configurar (.env: GitHub, Backblaze, senha, OneDrive)'
-    Write-Host '   7  Preparar/recuperar este PC (tudo de uma vez)'
-    Write-Host '   8  Importar planilha antiga'
-    Write-Host '   9  Abrir backup criptografado (.enc)'
-    Write-Host '  10  Liberar firewall (celulares e outros PCs)'
-    Write-Host '  11  Instalacao offline (pendrive)'
+    Write-Host '   3  Parar'
+    Write-Host '   4  Restaurar backup (o backup e feito ao Finalizar o leilao, no sistema)'
+    Write-Host '   5  Configurar (.env: GitHub, Backblaze, senha, OneDrive)'
+    Write-Host '   6  Preparar/recuperar este PC (tudo de uma vez)'
+    Write-Host '   7  Importar planilha antiga'
+    Write-Host '   8  Abrir backup criptografado (.enc)'
+    Write-Host '   9  Liberar firewall (celulares e outros PCs)'
+    Write-Host '  10  Instalacao offline (pendrive)'
     Write-Host '   0  Sair'
     $op = Read-Host "`n  Opcao"
-    $cmd = switch ($op) { '1' { 'iniciar' } '2' { 'abrir' } '3' { 'parar' } '4' { 'backup' } '5' { 'restaurar' } '6' { 'configurar' }
-      '7' { 'preparar' } '8' { 'importar' } '9' { 'descriptografar' } '10' { 'firewall' } '0' { return }
-      '11' { if ((Read-Host '    1 = empacotar (PC com internet)  2 = instalar (PC sem internet)') -eq '2') { 'offline-instalar' } else { 'offline-empacotar' } }
+    $cmd = switch ($op) { '1' { 'iniciar' } '2' { 'abrir' } '3' { 'parar' } '4' { 'restaurar' } '5' { 'configurar' }
+      '6' { 'preparar' } '7' { 'importar' } '8' { 'descriptografar' } '9' { 'firewall' } '0' { return }
+      '10' { if ((Read-Host '    1 = empacotar (PC com internet)  2 = instalar (PC sem internet)') -eq '2') { 'offline-instalar' } else { 'offline-empacotar' } }
       default { $null } }
     if (-not $cmd) { continue }
     try { Executar $cmd } catch { Write-Host "`nERRO: $($_.Exception.Message)" -ForegroundColor Red }

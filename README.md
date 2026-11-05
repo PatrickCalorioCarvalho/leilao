@@ -7,7 +7,7 @@ registrar o arremate e imprimir a **nota promissória** (A4 duplicada: via do co
 - **100% offline**: só precisa de rede local. Nada de internet, CDN ou serviço externo.
 - **Só precisa do Docker** no PC servidor. Os outros aparelhos usam apenas o navegador.
 - **Histórico**: cada leilão fica guardado (2018, 2022…) e serve de base para sugerir animais/itens e reaproveitar clientes.
-- **Backup**: automático a cada 1 hora; ao finalizar gera relatório final + backup. Com o Backblaze B2 configurado, tudo sobe sozinho e **criptografado** para um bucket privado (fila offline: envia quando houver internet).
+- **Backup**: ao **Finalizar** o leilão, gera o relatório final + backup completo, neste PC e no Backblaze (criptografado). Para recuperar: `Leilao.bat` → **Restaurar**.
 
 ## Instalar num PC novo (um comando)
 
@@ -55,15 +55,14 @@ Tudo é feito pelo **`Leilao.bat`**. Dois cliques nele abrem o menu:
   ==========  Sistema de Leilao  ==========
    1  Iniciar o sistema
    2  Abrir o sistema (impressao direta)
-   3  Parar (faz backup antes)
-   4  Backup agora
-   5  Restaurar backup
-   6  Configurar (.env: GitHub, Backblaze, senha, OneDrive)
-   7  Preparar/recuperar este PC (tudo de uma vez)
-   8  Importar planilha antiga
-   9  Abrir backup criptografado (.enc)
-  10  Liberar firewall (celulares e outros PCs)
-  11  Instalacao offline (pendrive)
+   3  Parar
+   4  Restaurar backup (o backup e feito ao Finalizar o leilao, no sistema)
+   5  Configurar (.env: GitHub, Backblaze, senha, OneDrive)
+   6  Preparar/recuperar este PC (tudo de uma vez)
+   7  Importar planilha antiga
+   8  Abrir backup criptografado (.enc)
+   9  Liberar firewall (celulares e outros PCs)
+  10  Instalacao offline (pendrive)
    0  Sair
 ```
 
@@ -94,10 +93,9 @@ Leilao/
 
 | Opção do menu | Quando usar |
 |---|---|
-| **Iniciar** / **Parar** | Liga o sistema (já baixa a versão mais nova) / faz backup e desliga |
+| **Iniciar** / **Parar** | Liga o sistema (já baixa a versão mais nova) / desliga |
 | **Abrir** | Janela própria que **imprime direto**. Em outro PC: copie `Leilao.bat` + `leilao.ps1` e crie `servidor.txt` com `IP:3000` |
-| **Backup** | Backup manual em `local/banco/leilao.sql` + cópia datada em `local/banco/backups/` (o Parar e o botão da aba Leilões já fazem isso) |
-| **Restaurar** | Volta o banco: o último backup do Backblaze, o `local/banco/leilao.sql` ou um arquivo. O banco atual é guardado antes |
+| **Restaurar** | Volta o banco a partir do último leilão **finalizado**: do Backblaze, deste PC ou de um arquivo. O banco atual é guardado antes |
 | **Configurar** | Monta o `.env`, perguntando item a item (Enter aceita o valor sugerido): GitHub, Backblaze, senha dos backups, pasta do OneDrive |
 | **Preparar** | **Instala ou recupera** o PC num passo: configuração, Docker, pastas, imagem, último backup e sistema no ar |
 | **Importar planilha** | Leilão antigo (`.xlsx`/`.csv`) como histórico |
@@ -141,7 +139,7 @@ O repositório guarda **só o código e a documentação**. Tudo que tem dados p
    — ele carrega sozinho — ou, com o sistema rodando, use `Leilao.bat → Restaurar`.
 3. Planilhas antigas: arraste a planilha em cima do `Leilao.bat` (ou `Leilao.bat importar planilha.xlsx 2018`).
 
-Os backups gerados pelo sistema (automático de hora em hora, relatório final) ficam em `local/banco/finais/` e **não vão para o Git**;
+Os backups (gerados ao **Finalizar** cada leilão) ficam em `local/banco/finais/` e **não vão para o Git**;
 com o Backblaze configurado eles também sobem para a nuvem — veja [docs/backup-e-nuvem.md](docs/backup-e-nuvem.md).
 
 > As senhas do MySQL em `docker-compose.yml` (`leilao` / `leilao_root`) são padrões para rede local fechada. Se o repositório for público

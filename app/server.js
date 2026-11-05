@@ -6,7 +6,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { q, one, run, iniciar } from './db.js';
 import { estadoB2, pendentesB2, b2Configurado } from './b2.js';
-import { salvarTudo, iniciarAuto, marcarAlteracao, nuvemConfigurada, ultimo, dumpSql, relatorioHtml, lotesDoLeilao, pacoteZip, csvResumoGeral, xlsxResumoGeral, entregaHtml } from './backup.js';
+import { salvarTudo, iniciarBackup, nuvemConfigurada, ultimo, dumpSql, relatorioHtml, lotesDoLeilao, pacoteZip, csvResumoGeral, xlsxResumoGeral, entregaHtml } from './backup.js';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT) || 3000;
@@ -143,7 +143,6 @@ const routes = {
     if (b.travar) await run('UPDATE leilao SET historico=1 WHERE id=?', a.id);
     return r;
   },
-  'POST /api/backup': async () => salvarTudo(await ativo(), 'backup'),
   'GET /api/info': async () => ({ ip: process.env.HOST_IP || '', porta: Number(process.env.PUBLIC_PORT) || PORT, nuvem: nuvemConfigurada(), logo: !!(await ativo())?.logo, ultimo,
     b2: b2Configurado() ? { pendentes: pendentesB2(), ...estadoB2 } : null }),
   // rastrear um animal pelo nº (brinco) em TODOS os leilões: onde foi, quem comprou, por quanto, se foi doado/reaberto
@@ -203,7 +202,7 @@ const compiled = Object.entries(routes).map(([k, fn]) => {
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json' };
 
 await iniciar();
-iniciarAuto(60);
+iniciarBackup();
 process.on('unhandledRejection', e => console.log('Erro não tratado:', e?.message || e)); // nada derruba o servidor
 process.on('uncaughtException', e => console.log('Erro inesperado:', e?.message || e));
 http.createServer(async (req, res) => {
@@ -260,7 +259,7 @@ http.createServer(async (req, res) => {
         let body = {};
         if (req.method !== 'GET') { let s = ''; for await (const c of req) s += c; body = s ? JSON.parse(s) : {}; }
         const out = await r.fn(body, u, m.groups || {});
-        if (req.method !== 'GET') { notify(u.pathname.split('/')[2]); marcarAlteracao(); }
+        if (req.method !== 'GET') notify(u.pathname.split('/')[2]);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify(out));
       }

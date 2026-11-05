@@ -56,7 +56,7 @@ Leilao.bat   leilao.ps1   (menu: preparar, iniciar, parar, backup, restaurar...)
 .env                (preenchido, ver abaixo)
 ```
 
-Depois, dois cliques em **`Leilao.bat`** → **7 – Preparar**. Ele pede a chave **Read Only** do Backblaze, que não fica salva, para baixar o último backup.
+Depois, dois cliques em **`Leilao.bat`** → **6 – Preparar**. Ele pede a chave **Read Only** do Backblaze, que não fica salva, para baixar o último backup.
 
 `.env` (modelo completo em `.env.exemplo`):
 ```

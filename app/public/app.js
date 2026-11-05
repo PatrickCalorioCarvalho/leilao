@@ -79,7 +79,7 @@ async function atualizaInfo() {
   try {
     const i = await api('/api/info'); window.info = i;
     $('#bk').textContent = i.ultimo ? `💾 ${hhmm(i.ultimo.quando)}` : '💾 —';
-    $('#bk').title = (i.ultimo ? `Último backup (${i.ultimo.tipo}) às ${hhmm(i.ultimo.quando)}` : 'Nenhum backup nesta sessão (automático a cada 1 hora)')
+    $('#bk').title = (i.ultimo ? `Último backup (${i.ultimo.tipo}) às ${hhmm(i.ultimo.quando)}` : 'Nenhum backup nesta sessão (o backup é feito ao Finalizar o leilão)')
       + (i.b2 ? `
 Backblaze: ${i.b2.pendentes ? i.b2.pendentes + ' arquivo(s) aguardando internet' : 'tudo enviado'}${i.b2.ultimoEnvio ? ' · último envio ' + hhmm(i.b2.ultimoEnvio) : ''}` : '');
     if (i.b2?.pendentes) $('#bk').textContent += ' ☁' + i.b2.pendentes;
@@ -369,8 +369,7 @@ async function telaRelatorio(m) {
     <button id="lim" class="sec">🧹 Limpar filtros</button>
     <button id="pr">🖨 Imprimir relatório</button><a id="csv"><button class="sec" type="button" title="Mesmo formato do CSV antigo (Lote;Animal;AnimalNumero;...)">⬇ CSV</button></a><a id="xlsx"><button class="sec" type="button" title="Excel com as abas ResumoGeral e ResumoDetalhado">⬇ Excel</button></a>
     <button id="entr" title="Lista para quem faz a entrega: animal, nº, arrematante e endereço (sem os doados)">🚚 Relatório de entrega</button>
-    <button id="nota" class="sec" hidden>🖨 Nota do comprador</button>
-    <button id="fin" class="sec" title="Salva relatório final + backup completo (local e nuvem)">📦 Salvar relatório final + backup</button></div><div id="finmsg"></div></div>
+    <button id="nota" class="sec" hidden>🖨 Nota do comprador</button></div></div>
   <div class="stats" id="st"></div>
   <div class="card"><h3 style="margin-top:0" id="tit">Lotes</h3><div id="tab"></div></div>
   <div class="card noprint"><h3 style="margin-top:0">Por arrematante <span class="sub">(clique para filtrar)</span></h3><div id="por"></div></div>`;
@@ -383,7 +382,6 @@ async function telaRelatorio(m) {
   $('#lim', m).onclick = () => { pessoa = null; pk.clear(); fd.value = fc.value = ''; fs.checked = false; refresh(); };
   $('#pr', m).onclick = () => print();
   $('#entr', m).onclick = () => window.open('/api/entrega.html' + (pessoa ? '?pessoa=' + pessoa.id : ''), '_blank');
-  $('#fin', m).onclick = () => salvarFinal(false, $('#finmsg', m));
   $('#nota', m).onclick = () => verNota('ids=' + pessoa.id);
   const rin = $('#rastro input', m); let trk;
   rin.oninput = () => { clearTimeout(trk); trk = setTimeout(async () => {
@@ -417,12 +415,12 @@ async function telaLeiloes(m) {
   <div class="card"><div id="tab"></div>
     <p class="sub">🔒 Histórico = só consulta (não deixa lançar nem arrematar). Leilão histórico não pode ser excluído.</p></div>
   <div class="card"><h3 style="margin-top:0">💾 Backup e relatório final</h3>
-    <div class="row"><button id="finz" ${leilao.historico ? 'disabled' : ''}>✅ Finalizar leilão</button><button id="bkp" class="sec">💾 Salvar backup agora</button>
+    <div class="row"><button id="finz" ${leilao.historico ? 'disabled' : ''}>✅ Finalizar leilão</button>
       <button id="envz" class="sec">☁ Baixar pacote (.zip) e abrir o OneDrive</button>
       <a href="/api/baixar/relatorio-final.html" download><button type="button" class="sec">⬇ Relatório final</button></a></div>
     <div id="bmsg"></div>
-    <p class="sub" style="margin-bottom:0"><b>Finalizar</b> = relatório final + backup completo em local\\banco\\finais e na pasta da nuvem (se configurada), e trava o leilão como histórico.
-      Além disso o sistema salva sozinho <b>a cada 1 hora</b> (se houve alteração), sobrescrevendo o anterior, sem parar nada.</p></div>
+    <p class="sub" style="margin-bottom:0"><b>Finalizar</b> = relatório final + <b>backup completo</b> (neste PC e no Backblaze, se configurado) e trava o leilão como histórico.
+      É o <b>único momento</b> em que o backup é feito. Para recuperar: <b>Leilao.bat → Restaurar</b>.</p></div>
   <div class="card"><h3 style="margin-top:0">📱 Acesso pelo celular e outros PCs</h3>
     <p style="margin:0 0 6px">Conecte o aparelho na <b>mesma rede Wi-Fi</b> e aponte a câmera para o QR (ou digite o endereço).</p>
     <label style="max-width:320px">Endereço deste servidor (IP:porta)<input id="srv"></label>
@@ -451,7 +449,6 @@ async function telaLeiloes(m) {
     await api('/api/leilao', 'POST', Object.fromEntries(new FormData(e.target)));
     location.hash = '#mesa'; location.reload();
   };
-  $('#bkp', m).onclick = async () => { await salvarFinal(false, $('#bmsg', m)); };
   $('#envz', m).onclick = enviarPacote;
   $('#finz', m).onclick = async () => { if (await salvarFinal(true, $('#bmsg', m))) { $('#finz', m).disabled = true; await loadLeilao(); } };
   // QR code com o endereço do servidor (IP detectado pelo Leilao.bat (Iniciar), ou o que o navegador está usando)

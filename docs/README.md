@@ -50,15 +50,15 @@ Depois, crie um **token classic só com `read:packages`** para os PCs do leilão
    B2_APP_KEY=...
    BACKUP_SENHA=...
    ```
-3. Dê dois cliques em **`Leilao.bat`** e escolha **7 – Preparar**. Ele faz tudo sozinho:
+3. Dê dois cliques em **`Leilao.bat`** e escolha **6 – Preparar**. Ele faz tudo sozinho:
    - monta o `.env` **perguntando item a item**. O valor entre `[ ]` é o recomendado e o **Enter aceita**. Se você não trouxe o `.env`, ele cria;
      para revisar depois, responda **s** em "Revisar a configuração?";
    - abre o Docker, se estiver fechado;
    - cria as pastas e baixa a imagem;
    - pede a **chave de leitura** do Backblaze (não fica salva), baixa o **último backup** e o restaura;
    - sobe o sistema e abre o navegador.
-4. Se o celular ou outro PC não abrir o endereço, use **10 – Liberar firewall** (ele pede administrador sozinho; uma vez).
-5. Teste: clique em **💾 Salvar backup agora** e veja o arquivo chegar no Backblaze (*Browse Files*).
+4. Se o celular ou outro PC não abrir o endereço, use **9 – Liberar firewall** (ele pede administrador sozinho; uma vez).
+5. Teste: crie um leilão `TESTE`, clique em **✅ Finalizar leilão** e veja o arquivo chegar no Backblaze (*Browse Files*).
 
 Nos dias seguintes, use **1 – Iniciar**. O **Preparar** é para instalar ou para **recuperar** o PC.
 
@@ -71,7 +71,7 @@ Local sem internet? Prepare antes com [instalacao-offline.md](instalacao-offline
 3. Nos celulares e outros PCs: aba **Leilões** → aponte a câmera para o **QR code**.
 4. Lance os lotes, registre os arremates e imprima as promissórias.
 
-O backup automático roda **a cada 1 hora** e sobe para o Backblaze quando houver internet.
+Não há backup automático: **o backup é feito ao Finalizar o leilão** (próximo passo). Até lá, os dados ficam no banco deste PC.
 O 💾 no topo mostra o horário do último backup, e `☁N` indica N arquivos esperando internet.
 
 ➡ Cada tela em detalhe: [uso.md](uso.md)
@@ -85,15 +85,15 @@ O 💾 no topo mostra o horário do último backup, e `☁N` indica N arquivos e
 
 ## 6. Recuperar um backup
 
-**Jeito fácil:** `Leilao.bat` → **5 – Restaurar** (ou **7 – Preparar**) e responda **s** quando ele perguntar se deve substituir o banco.
+**Jeito fácil:** `Leilao.bat` → **4 – Restaurar** (ou **6 – Preparar**) e responda **s** quando ele perguntar se deve substituir o banco.
 Ele baixa o backup mais recente do Backblaze (relatório final ou automático, o que for mais novo) e o aplica.
 O banco anterior fica guardado em `local\banco\backups\leilao_antes_<data>.sql`.
 
 **Sem internet**, com o backup num pendrive: arraste o arquivo (`.enc`, `.zip` ou `.sql`) em cima do `Leilao.bat`.
 
 **Manual:**
-1. Entre no Backblaze **com a sua conta** → *Browse Files* → baixe o arquivo (`finais/...zip.enc` ou `auto/leilao_auto.sql.gz.enc`).
-2. `Leilao.bat` → **9 – Abrir backup criptografado**, arraste o arquivo para a janela e digite a senha dos backups.
+1. Entre no Backblaze **com a sua conta** → *Browse Files* → baixe o arquivo (`finais/...zip.enc`).
+2. `Leilao.bat` → **8 – Abrir backup criptografado**, arraste o arquivo para a janela e digite a senha dos backups.
 3. Pegue o `leilao.sql` (de dentro do `.zip`, ou o próprio `.sql`), coloque em `local\banco\leilao.sql` e rode `Leilao.bat → Restaurar`.
 
 ➡ Mais opções: [backup-e-nuvem.md](backup-e-nuvem.md#restaurar) · [dados-historicos.md](dados-historicos.md)

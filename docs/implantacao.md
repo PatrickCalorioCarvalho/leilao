@@ -4,10 +4,10 @@ Tudo fica no **GitHub**, num repositório **privado**:
 - o **código** e esta **documentação**, que o GitHub mostra formatada;
 - a **imagem Docker** pronta, na aba *Packages*, publicada sozinha a cada `git push`.
 
-No PC do leilão não vai código: vão só o `docker-compose.yml`, os `.bat` e um `.env`.
+No PC do leilão não vai código: vão só o `Leilao.bat`, o `leilao.ps1`, o `docker-compose.yml` e um `.env`.
 
 ```
-você (git push) ──► GitHub privado ──► Actions constrói ──► ghcr.io (Packages, privado) ──► PC do leilão (iniciar.bat baixa)
+você (git push) ──► GitHub privado ──► Actions constrói ──► ghcr.io (Packages, privado) ──► PC do leilão (Leilao.bat → Iniciar baixa)
 ```
 
 ## 1. Uma vez: criar o repositório
@@ -41,7 +41,7 @@ O endereço do comando é `https://gist.githubusercontent.com/<usuário>/<id-do-
 Coloque esse endereço no `README.md` (no lugar de `URL_DO_INSTALADOR`) e no cabeçalho do `instalar.ps1`.
 Quando mudar o `instalar.ps1`, atualize o Gist com `gh gist edit <id-do-gist> instalar.ps1`.
 
-Os arquivos que o instalador entrega (`docker-compose.yml`, `.bat`, `preparar.ps1`, `utilitarios\`, `logo\`) vão **dentro da imagem**.
+Os arquivos que o instalador entrega (`Leilao.bat`, `leilao.ps1`, `docker-compose.yml`, `.env.exemplo`, `logo\`) vão **dentro da imagem**.
 O Actions os copia para `app/implantacao/` antes do build. Por isso, qualquer mudança neles chega aos PCs com um `git push`.
 
 ## 3. Instalar num PC de leilão
@@ -52,14 +52,12 @@ O PC precisa só do **Docker Desktop**. Copie para uma pasta (ex.: `C:\Leilao`):
 
 ```
 docker-compose.yml   .env.exemplo
-preparar.bat   preparar.ps1   (instala/recupera: pastas, imagem, último backup, sistema no ar)
-iniciar.bat   parar.bat   abrir-sistema.bat
-utilitarios\        (backup, restauração, firewall, descriptografar)
+Leilao.bat   leilao.ps1   (menu: preparar, iniciar, parar, backup, restaurar...)
 logo\logo.jpg       (opcional)
 .env                (preenchido, ver abaixo)
 ```
 
-Depois, dois cliques em **`preparar.bat`**. Ele pede a chave **Read Only** do Backblaze, que não fica salva, para baixar o último backup.
+Depois, dois cliques em **`Leilao.bat`** → **7 – Preparar**. Ele pede a chave **Read Only** do Backblaze, que não fica salva, para baixar o último backup.
 
 `.env` (modelo completo em `.env.exemplo`):
 ```
@@ -71,8 +69,8 @@ B2_APP_KEY=<applicationKey>
 BACKUP_SENHA=<senha dos backups>
 ```
 
-Depois é só rodar `iniciar.bat`. Ele faz o login, baixa a versão mais nova e sobe o sistema. Sem internet, usa a versão que já está no PC.
-**Para atualizar** o sistema, faça `git push` no seu PC e rode `iniciar.bat` (com internet) no PC do leilão.
+Depois é só rodar `Leilao.bat → Iniciar`. Ele faz o login, baixa a versão mais nova e sobe o sistema. Sem internet, usa a versão que já está no PC.
+**Para atualizar** o sistema, faça `git push` no seu PC e rode `Leilao.bat → Iniciar` (com internet) no PC do leilão.
 
 ## O que cada credencial permite (se o `.env` vazar)
 
@@ -85,10 +83,10 @@ Depois é só rodar `iniciar.bat`. Ele faz o login, baixa a versão mais nova e 
 Se um `.env` vazar: revogue o token no GitHub e a chave no Backblaze, crie novos e troque nos PCs.
 
 ## Limites do plano grátis (sobra para este uso)
-- Pacotes privados: **500 MB** de armazenamento e **1 GB/mês** de download. A imagem tem ~60 MB, e um `iniciar.bat` sem mudança de versão baixa quase nada.
+- Pacotes privados: **500 MB** de armazenamento e **1 GB/mês** de download. A imagem tem ~60 MB, e um `Leilao.bat → Iniciar` sem mudança de versão baixa quase nada.
 - Actions em repositório privado: 2.000 min/mês; cada publicação leva ~3 min.
 - Para não acumular versões antigas: *Packages → leilao → Manage versions* e apague as velhas (as tags `:<commit>`).
 
 ## Desenvolvimento
-No seu PC, deixe `IMAGEM` em branco: o `iniciar.bat` constrói a imagem a partir do código (`docker compose up -d --build`).
+No seu PC, deixe `IMAGEM` em branco: o `Leilao.bat → Iniciar` constrói a imagem a partir do código (`docker compose up -d --build`).
 A imagem é construída só com a pasta `app/` (código). `.env` e a pasta `local/` (banco, backups, planilhas) nunca entram.

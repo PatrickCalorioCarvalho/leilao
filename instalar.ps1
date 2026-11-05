@@ -3,7 +3,7 @@
 #   Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/PatrickCalorioCarvalho/GIST_ID/raw/instalar.ps1'))
 #
 # O que faz: instala/abre o Docker Desktop, baixa a imagem privada do sistema (pede o token do GitHub),
-# extrai os arquivos para a pasta escolhida e roda o preparar.ps1 (configura o .env, restaura o ultimo backup e sobe o sistema).
+# extrai os arquivos para a pasta escolhida e roda "leilao.ps1 preparar" (configura o .env, restaura o ultimo backup e sobe o sistema).
 # Este arquivo e PUBLICO e nao contem segredos: token, chaves e senhas sao pedidos na hora.
 # Rodar de novo = ATUALIZA os arquivos do sistema (o .env e a pasta local\ com os dados sao preservados).
 
@@ -71,7 +71,10 @@ function Install-Leilao {
   docker cp "${cid}:/app/implantacao/." $pasta
   $copiou = $LASTEXITCODE -eq 0
   docker rm $cid | Out-Null
-  if (-not $copiou -or -not (Test-Path (Join-Path $pasta 'preparar.ps1'))) { Erro 'a imagem nao tem os arquivos de instalacao.'; return }
+  if (-not $copiou -or -not (Test-Path (Join-Path $pasta 'leilao.ps1'))) { Erro 'a imagem nao tem os arquivos de instalacao.'; return }
+  # versoes antigas tinham varios .bat soltos; hoje e tudo pelo Leilao.bat
+  'iniciar.bat', 'parar.bat', 'abrir-sistema.bat', 'preparar.bat', 'preparar.ps1', 'utilitarios' |
+    ForEach-Object { Remove-Item (Join-Path $pasta $_) -Recurse -Force -ErrorAction SilentlyContinue }
   $novo = -not (Test-Path $envf)
   if ($novo) {
     $linhas = @("IMAGEM=$imagem", "GHCR_USUARIO=$usuario", "GHCR_TOKEN=$token")
@@ -81,6 +84,7 @@ function Install-Leilao {
 
   # ---- 5. configuracao, ultimo backup e sistema no ar
   Passo 'Configuracao, backup e sistema'
-  if ($novo) { & (Join-Path $pasta 'preparar.ps1') -Configurar } else { & (Join-Path $pasta 'preparar.ps1') }
+  if ($novo) { & (Join-Path $pasta 'leilao.ps1') preparar -Configurar } else { & (Join-Path $pasta 'leilao.ps1') preparar }
+  Write-Host "`nNo dia a dia: dois cliques em $pasta\Leilao.bat (menu: iniciar, parar, backup...)." -ForegroundColor Green
 }
 Install-Leilao

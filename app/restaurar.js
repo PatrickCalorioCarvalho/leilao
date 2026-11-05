@@ -1,7 +1,7 @@
 // Pega o backup MAIS RECENTE (relatório final ou automático), descriptografa e grava o leilao.sql pronto para carregar.
 //   node restaurar.js <saida.sql>                 -> baixa do Backblaze (precisa da chave de LEITURA: B2_LER_KEY_ID / B2_LER_APP_KEY)
 //   node restaurar.js <saida.sql> <arquivo>       -> usa um arquivo já baixado (.enc, .zip, .sql.gz ou .sql)
-// Usado pelo preparar.ps1. A chave de leitura é diferente da chave de envio do .env (que é só de escrita) e não fica salva.
+// Usado pelo Leilao.bat (Preparar). A chave de leitura é diferente da chave de envio do .env (que é só de escrita) e não fica salva.
 import fs from 'node:fs';
 import path from 'node:path';
 import zlib from 'node:zlib';

@@ -20,17 +20,17 @@ services:
       retries: 40
   app:
     build: ./app                           # PC de desenvolvimento: constrói a partir do código
-    image: leilao-app:latest              # PC do leilão: o iniciar.bat baixa ${IMAGEM} do GitHub (ghcr.io) com este nome
+    image: leilao-app:latest              # PC do leilão: o Leilao.bat (Iniciar) baixa ${IMAGEM} do GitHub (ghcr.io) com este nome
     restart: unless-stopped
     depends_on:
       db: { condition: service_healthy }
     environment:
       DB_HOST: db
       TZ: America/Sao_Paulo
-      HOST_IP: ${HOST_IP:-}                 # preenchido pelo iniciar.bat (para o QR code)
+      HOST_IP: ${HOST_IP:-}                 # preenchido pelo Leilao.bat (Iniciar) (para o QR code)
       BACKUP_LOCAL: /backups/local
       BACKUP_NUVEM: /backups/nuvem
-      NUVEM_OK: ${NUVEM_OK:-}               # "sim" quando NUVEM_DIR foi configurada (ver configurar-nuvem.bat)
+      NUVEM_OK: ${NUVEM_OK:-}               # "sim" quando NUVEM_DIR foi configurada (ver Leilao.bat (Configurar))
       # Backblaze B2 (opcional) — ver .env.exemplo e docs/backup-e-nuvem.md
       B2_KEY_ID: ${B2_KEY_ID:-}
       B2_APP_KEY: ${B2_APP_KEY:-}

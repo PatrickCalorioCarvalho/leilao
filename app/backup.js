@@ -32,7 +32,7 @@ const pad = n => String(n).padStart(2, '0');
 const agora = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`; };
 const slug = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '') || 'leilao';
 
-// ---- dump SQL completo (restaura com restaurar-banco.bat ou carregando no MySQL)
+// ---- dump SQL completo (restaura com Leilao.bat (Restaurar) ou carregando no MySQL)
 export async function dumpSql() {
   const schema = fs.readFileSync(path.join(DIR, 'schema.sql'), 'utf8');
   const out = [`-- Backup do Sistema de Leilão — ${new Date().toLocaleString('pt-BR')}`, 'SET NAMES utf8mb4;',

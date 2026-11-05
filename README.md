@@ -49,19 +49,41 @@ Do mesmo jeito que o Chocolatey: um comando no PowerShell instala e deixa tudo p
 
 Pré-requisito (só no PC "servidor"): **Docker Desktop**.
 
-1. Dê dois cliques em `iniciar.bat`.
-2. No PC servidor abra <http://localhost:3000> (ou use `abrir-sistema.bat`).
+Tudo é feito pelo **`Leilao.bat`**. Dois cliques nele abrem o menu:
+
+```
+  ==========  Sistema de Leilao  ==========
+   1  Iniciar o sistema
+   2  Abrir o sistema (impressao direta)
+   3  Parar (faz backup antes)
+   4  Backup agora
+   5  Restaurar backup
+   6  Configurar (.env: GitHub, Backblaze, senha, OneDrive)
+   7  Preparar/recuperar este PC (tudo de uma vez)
+   8  Importar planilha antiga
+   9  Abrir backup criptografado (.enc)
+  10  Liberar firewall (celulares e outros PCs)
+  11  Instalacao offline (pendrive)
+   0  Sair
+```
+
+1. **1 – Iniciar**: mostra o endereço do sistema (`http://localhost:3000` e o IP para celulares).
+2. No PC da mesa: **2 – Abrir** (janela própria que imprime as promissórias direto).
 3. Nos outros aparelhos: aba **Leilões** → aponte a câmera do celular para o **QR code**, ou digite `http://IP-DO-SERVIDOR:3000`.
-4. Ao terminar: aba **Leilões → ✅ Finalizar leilão**; depois `parar.bat`.
+4. Ao terminar: aba **Leilões → ✅ Finalizar leilão**; depois **3 – Parar**.
+
+**Atalhos:** arraste um arquivo em cima do `Leilao.bat`. Uma planilha (`.xlsx`/`.csv`) é importada como leilão histórico; um backup (`.enc`, `.zip`, `.sql`) é restaurado.
+Pela linha de comando também funciona: `Leilao.bat iniciar`, `Leilao.bat parar`, `Leilao.bat backup`, `Leilao.bat abrir`…
 
 ## O que tem na pasta
 
 ```
 Leilao/
-├── iniciar.bat  parar.bat  abrir-sistema.bat   ← o que se usa no dia a dia
+├── Leilao.bat      ← o único arquivo que você precisa abrir (menu)
+├── leilao.ps1      a lógica de todas as opções do menu
+├── instalar.ps1    instalador de um comando (público, sem segredos)
 ├── docker-compose.yml  .env.exemplo  README.md
 ├── app/            código do sistema (só esta pasta vira a imagem Docker)
-├── utilitarios/    scripts de uso raro
 ├── docs/           documentação
 ├── logo/           logo da entidade (promissórias e relatório final)
 └── local/          DADOS PESSOAIS deste PC: fora do Git, nunca compartilhe
@@ -71,25 +93,21 @@ Leilao/
     └── planilhas/    planilhas originais (xlsx/csv)
 ```
 
-| Item | Para que serve |
+| Opção do menu | Quando usar |
 |---|---|
-| `preparar.bat` | **Instala ou recupera** o PC num passo: pastas, imagem, último backup do Backblaze restaurado e sistema no ar |
-| `iniciar.bat` / `parar.bat` | Liga o sistema / faz backup e desliga |
-| `abrir-sistema.bat` | Abre o sistema numa janela própria e **imprime direto** (sem janela de impressão). Em outro PC, crie `servidor.txt` com `IP:3000` |
-| `.env` | Configuração deste PC (imagem, Backblaze, senha dos backups). **Fora do Git**; modelo em `.env.exemplo` |
-| `app/` | `server.js` (servidor), `db.js`, `backup.js` (backups e relatórios), `b2.js` (envio ao Backblaze), `schema.sql`, `public/` (telas) |
+| **Iniciar** / **Parar** | Liga o sistema (já baixa a versão mais nova) / faz backup e desliga |
+| **Abrir** | Janela própria que **imprime direto**. Em outro PC: copie `Leilao.bat` + `leilao.ps1` e crie `servidor.txt` com `IP:3000` |
+| **Backup** | Backup manual em `local/banco/leilao.sql` + cópia datada em `local/banco/backups/` (o Parar e o botão da aba Leilões já fazem isso) |
+| **Restaurar** | Volta o banco: o último backup do Backblaze, o `local/banco/leilao.sql` ou um arquivo. O banco atual é guardado antes |
+| **Configurar** | Monta o `.env`, perguntando item a item (Enter aceita o valor sugerido): GitHub, Backblaze, senha dos backups, pasta do OneDrive |
+| **Preparar** | **Instala ou recupera** o PC num passo: configuração, Docker, pastas, imagem, último backup e sistema no ar |
+| **Importar planilha** | Leilão antigo (`.xlsx`/`.csv`) como histórico |
+| **Abrir backup criptografado** | Abre um `.enc` baixado do Backblaze (gera o `.zip`/`.sql`) |
+| **Liberar firewall** | Se o celular/outro PC não abrir o endereço (pede administrador sozinho; uma vez) |
+| **Instalação offline** | Empacotar as imagens num PC com internet e instalar num PC sem internet (pendrive) |
 
-### Scripts em `utilitarios/` (só quando precisar)
-
-| Script | Quando usar |
-|---|---|
-| `backup.bat` | Backup manual do banco em `local/banco/leilao.sql` (o `parar.bat` e o botão da aba Leilões já fazem isso) |
-| `restaurar-banco.bat` | Emergência: volta o banco a partir de `local/banco/leilao.sql` |
-| `gerar-sql.bat` | Importar uma planilha antiga como leilão histórico (arraste o arquivo; só precisa do Docker) |
-| `liberar-firewall.bat` | Se o celular/outro PC não abrir o endereço (administrador, uma vez) |
-| `configurar-nuvem.bat` | Só se o PC do leilão tiver OneDrive/Drive instalado (pasta sincronizada) |
-| `descriptografar.bat` | Abrir um backup `.enc` baixado do Backblaze (arraste o arquivo) |
-| `empacotar-offline.bat` / `instalar-offline.bat` | Instalar num PC sem internet |
+O `.env` guarda a configuração deste PC (imagem, Backblaze, senha dos backups). Ele fica **fora do Git**; o modelo está em `.env.exemplo`.
+Em `app/` ficam `server.js` (servidor), `db.js`, `backup.js` (backups e relatórios), `b2.js` (envio ao Backblaze), `restaurar.js`, `schema.sql` e `public/` (telas).
 
 ## Documentação
 
@@ -108,16 +126,16 @@ O repositório guarda **só o código e a documentação**. Tudo que tem dados p
 (`.gitignore`): a pasta **`local/`** inteira e o `.env` de cada PC. Como segunda trava, `.sql` (exceto `app/schema.sql`), planilhas e `.zip`/`.tar` também são ignorados em qualquer lugar.
 
 **Clonou num PC novo?**
-1. `iniciar.bat` — sobe com o banco vazio (o sistema cria as tabelas e a pasta `local/` sozinho).
-2. Para trazer os dados: coloque o seu `leilao.sql` (backup guardado à parte) em `local/banco/`, com `local/mysql/` vazia, **antes** do primeiro `iniciar.bat`
-   — ele carrega sozinho — ou, com o sistema rodando, use `utilitarios/restaurar-banco.bat`.
-3. Planilhas antigas: `utilitarios/gerar-sql.bat planilha.xlsx ANO`.
+1. `Leilao.bat → Iniciar` — sobe com o banco vazio (o sistema cria as tabelas e a pasta `local/` sozinho).
+2. Para trazer os dados: coloque o seu `leilao.sql` (backup guardado à parte) em `local/banco/`, com `local/mysql/` vazia, **antes** do primeiro `Leilao.bat → Iniciar`
+   — ele carrega sozinho — ou, com o sistema rodando, use `Leilao.bat → Restaurar`.
+3. Planilhas antigas: arraste a planilha em cima do `Leilao.bat` (ou `Leilao.bat importar planilha.xlsx 2018`).
 
 Os backups gerados pelo sistema (automático de hora em hora, relatório final) ficam em `local/banco/finais/` e **não vão para o Git**;
 com o Backblaze configurado eles também sobem para a nuvem — veja [docs/backup-e-nuvem.md](docs/backup-e-nuvem.md).
 
 > As senhas do MySQL em `docker-compose.yml` (`leilao` / `leilao_root`) são padrões para rede local fechada. Se o repositório for público
-> ou o servidor ficar exposto, troque-as (em `docker-compose.yml`, `utilitarios/backup.bat` e `utilitarios/restaurar-banco.bat`).
+> ou o servidor ficar exposto, troque-as (em `docker-compose.yml` e no `leilao.ps1`).
 
 ## Tecnologia
 

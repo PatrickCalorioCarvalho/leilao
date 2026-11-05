@@ -8,7 +8,7 @@
 - O logo da entidade aparece no topo.
 
 ## Antes de começar
-1. Ligue o servidor (`iniciar.bat`) e confira que os outros PCs abrem o endereço.
+1. Ligue o servidor (`Leilao.bat → Iniciar`) e confira que os outros PCs abrem o endereço.
 2. Aba **Leilões → Criar novo leilão** (ex.: "Leilão 2026"). Para ensaiar, crie um chamado **TESTE** e apague depois.
 3. Na mesma aba, em **Configuração do leilão em uso**, preencha **beneficiário** (a quem se paga), **cidade** e **vencimento**.
 
@@ -27,7 +27,7 @@ Dá para fazer **todo o arremate sem trocar de tela**: escolher o lote, o compra
 4. Digite o **valor final** e Enter.
 5. **Nota:** a nota do lote **sai sozinha a cada arremate** (abre a janela de impressão). Para reimprimir, use os botões em **Últimos arremates**: 🖨 lote (nota só daquele lote), 🖨 tudo (nota com tudo que o comprador levou), 📄 (ver / salvar PDF).
 
-> **Impressão direta:** abra o sistema pelo `abrir-sistema.bat` — ele imprime **sem mostrar a janela de impressão**, na impressora padrão do Windows (precisa de Chrome ou Edge).
+> **Impressão direta:** abra o sistema pelo `Leilao.bat → Abrir` — ele imprime **sem mostrar a janela de impressão**, na impressora padrão do Windows (precisa de Chrome ou Edge).
 > **PDF:** no navegador comum, na janela de impressão escolha o destino **"Salvar como PDF"**.
 > Papel A4, margens "nenhuma", sem cabeçalho/rodapé.
 
@@ -42,8 +42,8 @@ O lote doado aparece com a marca **doado** na Mesa, no Relatório e na **promiss
 **Não existe tela separada para celular:** são as **mesmas telas**, que se adaptam ao tamanho da tela. O celular precisa estar na **mesma rede Wi-Fi** do servidor (não precisa de internet).
 - A **Mesa** funciona inteira no celular: o painel de arremate vem primeiro e a lista de lotes embaixo.
 - A aba **Lotes** serve para lançar lotes (no PC ou no celular).
-- **QR code** na aba **Leilões → 📱 Acesso**: aponte a câmera do celular (um QR abre *Lotes*, outro a *Mesa*). Se o IP não aparecer sozinho, digite-o no campo (o `iniciar.bat` mostra). No navegador do celular, menu → *Adicionar à tela inicial* cria um ícone.
-- Se o celular não abrir o endereço, rode `utilitarios/liberar-firewall.bat` **como administrador** no servidor (uma vez).
+- **QR code** na aba **Leilões → 📱 Acesso**: aponte a câmera do celular (um QR abre *Lotes*, outro a *Mesa*). Se o IP não aparecer sozinho, digite-o no campo (o `Leilao.bat → Iniciar` mostra). No navegador do celular, menu → *Adicionar à tela inicial* cria um ícone.
+- Se o celular não abrir o endereço, rode `Leilao.bat → Liberar firewall` **como administrador** no servidor (uma vez).
 - Sem roteador no local? Use um roteador Wi-Fi simples (sem internet) ou o "Hotspot móvel" do Windows no notebook servidor.
 
 ## Outras abas
@@ -79,6 +79,6 @@ Filtros: **arrematante** (ou clique no nome na tabela "Por arrematante"), **doa�
 ## Depois do leilão
 1. Relatório → imprimir / exportar CSV (opcional).
 2. Aba **Leilões → ✅ Finalizar leilão**: gera o **relatório final + backup completo** e **trava** o leilão como histórico. Em seguida clique **☁ Baixar pacote (.zip) e abrir o OneDrive** e solte o arquivo na página que abrir. Detalhes (e como criar o link de envio) em [backup-e-nuvem.md](backup-e-nuvem.md).
-3. `parar.bat` — faz um último backup e desliga.
+3. `Leilao.bat → Parar` — faz um último backup e desliga.
 
 > O sistema também salva sozinho **a cada 1 hora** (sobrescrevendo o anterior), sem parar nada. O ícone 💾 no topo mostra a hora do último backup.

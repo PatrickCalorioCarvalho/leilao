@@ -5,9 +5,9 @@ Planilha com colunas: Lote, Item, Número Animal, ValorInicial, ValorFinal, Nome
 (`.xlsx`, primeira aba; ou `.csv` com `;`).
 
 ```
-utilitarios\gerar-sql.bat planilha2018.xlsx 2018
+Leilao.bat importar planilha2018.xlsx 2018
 ```
-(ou arraste a planilha em cima do `utilitarios/gerar-sql.bat`). Só precisa do **Docker** e do sistema ligado: o `.bat` gera o SQL em `local/historico/` **e já aplica no banco**.
+(ou arraste a planilha em cima do `Leilao.bat`, ou use a opção **8 – Importar planilha** do menu). Só precisa do **Docker** e do sistema ligado: ele gera o SQL em `local/historico/` **e já aplica no banco**.
 Já gerados e aplicados: `local/historico/2022.sql` (de `Leilao2022.xlsx`) e `local/historico/2018.sql` (de `LeilaoCompleto(Planilha1).csv`).
 O script por trás é o `gerar-sql.js`; se tiver Node instalado: `node gerar-sql.js planilha.xlsx local/historico/2018.sql --ano 2018`.
 Opções: `--ano 2018`, `--nome "Leilão 2018"`, `--data 2018-05-10`. Cria o leilão **como histórico**.
@@ -20,17 +20,17 @@ docker compose exec -T db mysql -uleilao -pleilao --default-character-set=utf8mb
 - Pode rodar mais de uma vez: **não duplica** pessoas; lotes já existentes são **atualizados** (só use em leilões históricos).
 - Pessoa repetida entre anos (mesmo CPF, ou mesmo nome se sem CPF) é reaproveitada.
 - Limpeza automática: CPF/RG/telefone falsos (`000.000.000-00`, `00,000,000-0`…) ficam vazios; "DOADO" vira a marca *doado* (reconhece "(DOADO)", "doação" etc.); "morto/viva…" vira a coluna *Vivo/Morto* em vez de ficar no nome.
-- Depois de importar, rode `utilitarios/backup.bat` para o `local/banco/leilao.sql` incluir o novo histórico.
+- Depois de importar, rode `Leilao.bat → Backup` para o `local/banco/leilao.sql` incluir o novo histórico.
 
 ## Backup
-- `utilitarios/backup.bat` → atualiza `local/banco/leilao.sql`, guarda cópia datada em `local/banco/backups/` e copia para a pasta da nuvem (se configurada).
-- `parar.bat` já faz backup antes de desligar.
+- `Leilao.bat → Backup` → atualiza `local/banco/leilao.sql`, guarda cópia datada em `local/banco/backups/` e copia para a pasta da nuvem (se configurada).
+- `Leilao.bat → Parar` já faz backup antes de desligar.
 - Há também o backup automático (1x/hora) e o relatório final: veja [backup-e-nuvem.md](backup-e-nuvem.md).
 - Faça backup também **durante** o leilão (ex.: no intervalo) e copie `local/banco/leilao.sql` para um pendrive.
 
 ## Restaurar
-- `utilitarios/restaurar-banco.bat` (pede confirmação) substitui o banco atual por `local/banco/leilao.sql`.
-- Em um PC novo/limpo: copie a pasta (sem `local/mysql/`) e rode `iniciar.bat`; o banco carrega sozinho de `local/banco/leilao.sql`
+- `Leilao.bat → Restaurar` (pede confirmação) substitui o banco atual por `local/banco/leilao.sql`.
+- Em um PC novo/limpo: copie a pasta (sem `local/mysql/`) e rode `Leilao.bat → Iniciar`; o banco carrega sozinho de `local/banco/leilao.sql`
   na primeira vez (quando `local/mysql/` está vazio).
 
 ## Compartilhar / guardar (e-mail, pendrive) — e o Git

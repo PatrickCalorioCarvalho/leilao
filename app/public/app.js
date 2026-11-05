@@ -446,7 +446,7 @@ async function telaLeiloes(m) {
   $('#bkp', m).onclick = async () => { await salvarFinal(false, $('#bmsg', m)); };
   $('#envz', m).onclick = enviarPacote;
   $('#finz', m).onclick = async () => { if (await salvarFinal(true, $('#bmsg', m))) { $('#finz', m).disabled = true; await loadLeilao(); } };
-  // QR code com o endereço do servidor (IP detectado pelo iniciar.bat, ou o que o navegador está usando)
+  // QR code com o endereço do servidor (IP detectado pelo Leilao.bat (Iniciar), ou o que o navegador está usando)
   await atualizaInfo();
   $('#logost', m).textContent = window.info?.logo ? '✔ logo encontrado.' : '(nenhum logo ainda)';
   const srv = $('#srv', m), local = ['localhost', '127.0.0.1', ''].includes(location.hostname);
@@ -456,7 +456,7 @@ async function telaLeiloes(m) {
   const qrs = () => {
     const v = srv.value.trim(); try { localStorage.srv = v; } catch {}
     $('#qrs', m).innerHTML = v ? [['Lotes', 'lotes'], ['Mesa (arremate)', 'mesa']].map(([t, h]) => `<div style="text-align:center"><div style="width:170px">${qrSvg(`http://${v}/#${h}`)}</div><b>${t}</b><br><code style="font-size:12px">http://${esc(v)}/#${h}</code></div>`).join('')
-      : '<span class="sub">Informe o IP do servidor (aparece no iniciar.bat) para gerar o QR.</span>';
+      : '<span class="sub">Informe o IP do servidor (aparece no Leilao.bat (Iniciar)) para gerar o QR.</span>';
   };
   srv.oninput = qrs; qrs();
   const cf = $('#cf', m);

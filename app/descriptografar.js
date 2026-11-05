@@ -1,5 +1,5 @@
 // Abre um backup criptografado (.enc) baixado do Backblaze B2.
-// Uso: BACKUP_SENHA=... node descriptografar.js arquivo.zip.enc   (no Windows: arraste o arquivo em utilitarios/descriptografar.bat)
+// Uso: BACKUP_SENHA=... node descriptografar.js arquivo.zip.enc   (no Windows: arraste o arquivo em Leilao.bat (Abrir backup criptografado))
 import fs from 'node:fs';
 import zlib from 'node:zlib';
 import { decifrar } from './b2.js';

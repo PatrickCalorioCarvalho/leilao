@@ -1,0 +1,2 @@
+Coloque aqui o logo da entidade com o nome: logo.png (ou logo.jpg, logo.svg).
+Ele aparece nas promissorias e no relatorio final. Nao precisa reiniciar.

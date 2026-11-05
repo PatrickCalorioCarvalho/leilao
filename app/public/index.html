@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Leilão</title>
+<meta name="theme-color" content="#3b2a1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1><img src="/api/logo" alt="" onerror="this.replaceWith(document.createTextNode('🐂'))"> Leilão</h1>
+  <nav id="nav"></nav>
+  <select id="leilaoSel" title="Leilão ativo"></select>
+  <span id="bk" title="Último backup"></span>
+  <span id="live">●</span>
+</header>
+<main id="main"></main>
+<script src="qrcode.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

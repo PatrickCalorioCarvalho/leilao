@@ -1,0 +1,19 @@
+# ===== Dados pessoais (CPF, telefone, endereço): tudo fica em local/ — nunca versionar =====
+local/
+# segunda trava, caso algum arquivo de dados vá parar fora de local/
+*.sql
+!app/schema.sql
+*.xlsx
+*.xls
+*.csv
+*.zip
+*.tar
+
+# ===== Configuração de cada PC (chaves, senhas) =====
+.env
+
+# ===== Gerados / dependências =====
+node_modules/
+*.log
+.DS_Store
+Thumbs.db

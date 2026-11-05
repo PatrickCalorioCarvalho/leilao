@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Promissórias</title>
+<style>
+@page{size:A4;margin:0}
+*{box-sizing:border-box}
+body{margin:0;font:12px/1.35 Georgia,serif;color:#000;background:#ddd}
+.folha{width:210mm;height:297mm;background:#fff;margin:8px auto;display:flex;flex-direction:column;page-break-after:always;overflow:hidden}
+.via{flex:1;padding:10mm 14mm;border-bottom:1px dashed #000;position:relative;display:flex;flex-direction:column}
+.via:last-child{border-bottom:0}
+.via .tag{position:absolute;right:14mm;top:5mm;font:bold 10px Arial;text-transform:uppercase;border:1px solid #000;padding:1px 6px}
+h1{margin:0 0 4px;font-size:18px;text-align:center;letter-spacing:2px}
+.ent{display:flex;gap:10px;align-items:center;font-size:10.5px;line-height:1.25;margin-bottom:4px}.ent img{max-height:62px;max-width:150px}
+.topo{display:flex;justify-content:space-between;border:1px solid #000;padding:4px 8px;margin-bottom:6px}
+.txt{text-align:justify;font-size:12.5px}
+table{width:100%;border-collapse:collapse;margin:6px 0;font-size:10.5px}
+th,td{border-bottom:1px solid #999;padding:1px 4px;text-align:left}
+td.n,th.n{text-align:right}
+.assin{margin-top:auto;display:flex;gap:24px;align-items:end}
+.assin div{flex:1;border-top:1px solid #000;text-align:center;padding-top:2px;font-size:10.5px}
+.bar{position:sticky;top:0;background:#333;color:#fff;padding:8px;text-align:center}
+.bar button{font-size:16px;padding:6px 16px}
+@media print{.bar{display:none}body{background:#fff}.folha{margin:0}}
+</style>
+</head>
+<body>
+<div class="bar"><button onclick="print()">🖨 Imprimir</button> <span id="info"></span></div>
+<div id="out"></div>
+<script>
+const brl = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const U = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+const D = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+const C = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+function ate999(n) {
+  if (n === 100) return 'cem';
+  const c = Math.floor(n / 100), r = n % 100, p = [];
+  if (c) p.push(C[c]);
+  if (r) p.push(r < 20 ? U[r] : D[Math.floor(r / 10)] + (r % 10 ? ' e ' + U[r % 10] : ''));
+  return p.join(' e ');
+}
+function inteiro(n) {
+  if (n === 0) return 'zero';
+  const mi = Math.floor(n / 1e6), mil = Math.floor((n % 1e6) / 1000), r = n % 1000, p = [];
+  if (mi) p.push(ate999(mi) + (mi === 1 ? ' milhão' : ' milhões'));
+  if (mil) p.push(mil === 1 ? 'mil' : ate999(mil) + ' mil');
+  if (r) p.push(ate999(r));
+  // "e" antes do último bloco quando ele é < 100 ou múltiplo de 100
+  if (p.length > 1 && (r && (r < 100 || r % 100 === 0) || (!r && mil && (mil < 100 || mil % 100 === 0)))) return p.slice(0, -1).join(', ') + ' e ' + p.at(-1);
+  return p.join(', ');
+}
+function extenso(v) {
+  const c = Math.round(v * 100), r = Math.floor(c / 100), ct = c % 100, out = [];
+  if (r) out.push(inteiro(r) + (r === 1 ? ' real' : (r % 1e6 === 0 ? ' de reais' : ' reais')));
+  if (ct) out.push(inteiro(ct) + (ct === 1 ? ' centavo' : ' centavos'));
+  return out.join(' e ') || 'zero reais';
+}
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const dataExt = iso => { const [a, m, d] = iso.split('-'); return `${+d} de ${MESES[+m - 1]} de ${a}`; };
+
+function via(L, it, nome) {
+  const total = it.lotes.reduce((s, l) => s + l.valor_final, 0), p = it.pessoa;
+  const venc = L.vencimento ? dataExt(L.vencimento) : '____ de ______________ de ________';
+  const emis = L.data ? dataExt(L.data) : '____ de ______________ de ________';
+  return `<div class="via"><span class="tag">${nome}</span>
+  <div class="ent"><img src="/api/logo" onerror="this.remove()"><div><b>${esc(L.beneficiario)}</b>${L.cnpj ? '<br>CNPJ ' + esc(L.cnpj) : ''}${L.endereco_entidade || L.telefone_entidade ? '<br>' + esc(L.endereco_entidade) + (L.telefone_entidade ? ' · ' + esc(L.telefone_entidade) : '') : ''}</div></div>
+  <h1>NOTA PROMISSÓRIA</h1>
+  <div class="topo"><span>${esc(L.nome)}</span><span>Vencimento: <b>${L.vencimento ? L.vencimento.split('-').reverse().join('/') : '___/___/______'}</b></span><span><b>${brl(total)}</b></span></div>
+  <p class="txt">Aos <b>${venc}</b> pagarei por esta única via de <b>NOTA PROMISSÓRIA</b> a <b>${esc(L.beneficiario || '________________________________')}</b>
+  ou à sua ordem, a quantia de <b>${brl(total)}</b> (<b>${extenso(total)}</b>), em moeda corrente nacional, referente à arrematação de lotes no ${esc(L.nome)}. Pagável em ${esc(L.cidade || '______________')}.</p>
+  <table><tr><th>Lote</th><th>Descrição</th><th class="n">Valor</th></tr>
+  ${it.lotes.map(l => `<tr><td>${esc(l.rotulo)}</td><td>${esc(l.descricao)}${l.condicao ? ' (' + l.condicao + ')' : ''}${l.animal_num ? ' #' + esc(l.animal_num) : ''}${l.doado ? ' <b>[DOADO]</b>' : ''}</td><td class="n">${brl(l.valor_final)}</td></tr>`).join('')}</table>
+  <p class="txt" style="margin:2px 0"><b>Emitente:</b> ${esc(p.nome)} &nbsp; <b>CPF:</b> ${esc(p.cpf) || '________________'} &nbsp; <b>RG:</b> ${esc(p.rg) || '____________'}<br>
+  <b>Endereço:</b> ${esc(p.endereco) || '______________________________________'} &nbsp; <b>Tel:</b> ${esc(p.telefone)}</p>
+  <p class="txt" style="margin:2px 0">${esc(L.cidade || '______________')}, ${emis}.</p>
+  <div class="assin"><div>Assinatura do emitente — ${esc(p.nome)}</div></div></div>`;
+}
+(async () => {
+  const r = await (await fetch('/api/promissoria' + location.search)).json();
+  $info = document.getElementById('info'); $info.textContent = `${r.itens.length} promissória(s) — ${r.itens.length} folha(s) A4`;
+  document.getElementById('out').innerHTML = r.itens.map(it =>
+    `<div class="folha">${via(r.leilao, it, 'Via do comprador')}${via(r.leilao, it, 'Via da mesa')}</div>`).join('') || '<p style="padding:20px">Nenhum arremate.</p>';
+  if (new URLSearchParams(location.search).get('auto') && r.itens.length) setTimeout(() => print(), 300);
+})();
+</script>
+</body>
+</html>

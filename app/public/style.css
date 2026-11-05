@@ -1,0 +1,149 @@
+/* ===== Sistema de Leilão — visual: rápido de ler, grande para tocar, alto contraste ===== */
+:root{
+  --marrom:#3b2a1a; --fundo:#f4f1ea; --texto:#1f1f1f; --suave:#5a5a5a;
+  --prim:#a85f0a;          /* laranja escuro: texto branco passa em contraste */
+  --prim-claro:#fde9c7; --ok:#1e7a34; --ok-claro:#dff0d8; --erro:#b3261e; --erro-claro:#fbdcd8;
+  --borda:#b9b3a6; --raio:12px;
+}
+*{box-sizing:border-box}
+html{font-size:17px}
+body{font-family:system-ui,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.4;margin:0;background:var(--fundo);color:var(--texto)}
+:focus-visible{outline:3px solid #1a73e8;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+[hidden]{display:none!important}
+
+/* ---------- topo e menu ---------- */
+header{background:var(--marrom);color:#fff;display:flex;align-items:center;gap:14px;padding:8px 16px;flex-wrap:wrap;position:sticky;top:0;z-index:30}
+header h1{font-size:19px;margin:0 8px 0 0;display:flex;align-items:center;gap:8px;white-space:nowrap}
+header h1 img{height:36px;background:#fff;border-radius:6px;padding:2px}
+header select{padding:6px 8px;font-size:15px;min-height:40px;border-radius:8px;border:0}
+nav{display:flex;gap:4px}
+nav a{color:#efe3cf;text-decoration:none;padding:9px 14px;border-radius:10px;font-weight:700;display:flex;align-items:center;gap:7px;min-height:44px}
+nav a .ic{font-size:20px;line-height:1}
+nav a:hover{background:#ffffff1f}
+nav a.on{background:var(--fundo);color:var(--marrom)}
+#bk{font-size:14px;opacity:.9}
+#live{margin-left:auto;font-size:13px;opacity:.9}
+main{max-width:1100px;margin:0 auto;padding:16px}
+main.wide{max-width:1860px}
+h2{margin:0 0 12px;font-size:24px}
+h3{font-size:19px}
+
+/* ---------- cartões e formulários ---------- */
+.card{background:#fff;border-radius:var(--raio);padding:16px;margin-bottom:14px;box-shadow:0 1px 4px #0003}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+label{display:flex;flex-direction:column;font-size:14px;color:var(--suave);gap:4px;font-weight:600}
+input,select,textarea{font:inherit;font-size:17px;padding:10px 12px;border:2px solid var(--borda);border-radius:10px;min-width:0;min-height:46px;background:#fff;color:var(--texto)}
+input:focus,select:focus{outline:3px solid #1a73e8;outline-offset:0;border-color:#1a73e8}
+input[type=checkbox],input[type=radio]{min-height:0;width:22px;height:22px;accent-color:var(--prim)}
+button{font:inherit;font-size:16px;padding:10px 18px;border:0;border-radius:10px;background:var(--prim);color:#fff;font-weight:700;cursor:pointer;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:filter .1s}
+button:hover{filter:brightness(1.1)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.sec{background:#e4ddcc;color:#2a2a2a}
+button.red{background:var(--erro)}
+button.sm{padding:5px 10px;font-size:14px;min-height:36px}
+.sub{color:var(--suave);font-size:14px}
+.big{font-size:28px;font-weight:800}
+.filtro{margin-bottom:10px;width:100%}
+
+/* ---------- tabelas ---------- */
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #e6e1d6}
+th{font-size:13px;color:var(--suave);text-transform:uppercase;letter-spacing:.3px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.vendido td:first-child{border-left:5px solid var(--ok)}
+tr.aberto td:first-child{border-left:5px solid #cfc9bb}
+tr[data-p]:hover{background:#faf5ea}
+
+/* ---------- etiquetas e avisos ---------- */
+.tag{font-size:13px;background:var(--ok-claro);color:#14501f;padding:2px 9px;border-radius:99px;font-weight:700}
+.tag.d{background:var(--prim-claro);color:#7a4700}
+.msg{padding:12px 14px;border-radius:10px;margin:10px 0;font-size:17px;font-weight:700}
+.msg.ok{background:var(--ok-claro);color:#14501f;border:2px solid #9fd29a}
+.msg.err{background:var(--erro-claro);color:#7a1610;border:2px solid #e8a7a0}
+.stats{display:flex;gap:14px;flex-wrap:wrap}
+.stats .card{flex:1;min-width:170px;text-align:center;font-weight:700;color:var(--suave)}
+.stats b{display:block;font-size:28px;color:var(--texto)}
+
+/* ---------- busca de pessoa ---------- */
+.pick{position:relative}
+.pick ul{position:absolute;z-index:25;left:0;right:0;top:100%;background:#fff;border:2px solid var(--borda);border-radius:10px;margin:3px 0 0;padding:0;list-style:none;max-height:320px;overflow:auto;box-shadow:0 8px 20px #0004}
+.pick li{padding:12px 14px;cursor:pointer;font-size:17px;border-bottom:1px solid #eee;font-weight:700}
+.pick li small{color:var(--suave);display:block;font-weight:400;font-size:14px}
+.pick li.sel,.pick li:hover{background:var(--prim-claro)}
+
+/* ---------- MESA ---------- */
+.mesa{display:grid;gap:16px;align-items:start;grid-template-columns:minmax(310px,400px) minmax(0,1fr);grid-template-areas:"lotes centro" "lotes hist"}
+.mesa>div{min-width:0}
+.a-lotes{grid-area:lotes}.a-centro{grid-area:centro}.a-hist{grid-area:hist}
+.passos2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+#passos.off .passos2{opacity:.4;pointer-events:none}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid #e6e1d6}
+.hl{flex:1 1 170px;min-width:0}.hb{display:flex;gap:6px;flex-wrap:wrap}
+.passo-t{font-size:19px;font-weight:800;display:flex;align-items:center;gap:10px;margin:0 0 10px}
+.passo-t .n{background:var(--marrom);color:#fff;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+.lote-cab{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.lote-num{background:var(--marrom);color:#fff;font-size:38px;font-weight:800;border-radius:14px;min-width:84px;padding:6px 14px;text-align:center;line-height:1.15}
+.lote-info{flex:1 1 220px;min-width:0}
+.lote-nome{font-size:28px;font-weight:800;line-height:1.15;word-break:break-word}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chip{background:#ece6d8;border-radius:99px;padding:4px 12px;font-size:15px;font-weight:700}
+.chip.d{background:var(--prim-claro);color:#7a4700}
+.vazio{text-align:center;font-size:22px;padding:18px;font-weight:700}
+.vazio small{font-size:16px;font-weight:400;color:var(--suave)}
+.ajustes{margin-top:12px}
+.valor input{font-size:30px;font-weight:800;width:175px;max-width:100%;min-height:58px}
+.ok-grande{width:100%;min-height:68px;font-size:24px;background:var(--ok);margin-top:14px;border-radius:14px;letter-spacing:.5px}
+.ok-grande small{font-size:14px;font-weight:600;opacity:.9}
+.toggle{flex-direction:row;align-items:center;gap:8px;font-size:19px;font-weight:800;color:#7a4700;background:#fff6e6;border:3px solid var(--prim);border-radius:12px;padding:8px 14px;cursor:pointer;user-select:none;min-height:58px}
+.toggle input{width:28px;height:28px}
+.toggle small{font-size:14px;font-weight:600}
+.toggle:has(input:checked){background:var(--prim);color:#fff}
+details.novo>summary{cursor:pointer;font-size:19px;font-weight:800;padding:4px 0 10px;list-style:none}
+details.novo>summary::-webkit-details-marker{display:none}
+details.novo[open]>summary{margin-bottom:4px}
+.filtros{display:flex;gap:8px;margin:10px 0}
+.pill{flex-direction:row;align-items:center;gap:8px;background:#ece6d8;border-radius:99px;padding:8px 16px;font-size:16px;cursor:pointer;color:var(--texto)}
+.pill:has(input:checked){background:var(--marrom);color:#fff}
+.pill input{accent-color:#fff;width:18px;height:18px}
+.lista{max-height:60vh;overflow:auto}
+.it{display:flex;gap:10px;align-items:center;padding:10px 10px;border-bottom:1px solid #eee;cursor:pointer;min-height:56px;font-size:17px}
+.it:hover{background:#faf5ea}
+.it.sel{background:var(--prim-claro);outline:3px solid var(--prim);outline-offset:-3px;border-radius:8px}
+.it.vendido{opacity:.7}
+.it .st{font-size:20px;width:26px;text-align:center;flex:none}
+
+/* ---------- impressão ---------- */
+@media print{header,.noprint,.msg{display:none!important}body{background:#fff}html{font-size:14px}main{max-width:none;padding:0}.card{box-shadow:none;padding:4px}.stats .card{border:1px solid #999}}
+
+@media(max-width:1400px){header{gap:10px}header select{max-width:210px}nav{gap:2px}nav a{padding:9px 10px;gap:5px;font-size:15px}}
+/* ---------- telas pequenas (celular): menu no rodapé, ao alcance do polegar ---------- */
+@media(min-width:1500px){.mesa{grid-template-columns:390px minmax(0,1fr) 420px;grid-template-areas:"lotes centro hist"}}
+@media(max-width:1100px){.passos2{grid-template-columns:1fr;gap:16px}}
+@media(max-width:900px){.mesa{grid-template-columns:minmax(0,1fr);grid-template-areas:"centro" "hist" "lotes"}#passos{overflow:visible}}
+@media(max-width:700px){
+  html{font-size:16px}
+  body{padding-bottom:76px}
+  header{padding:6px 10px;gap:8px}
+  header h1{font-size:17px;margin:0}
+  header h1 img{height:30px}
+  #leilaoSel{max-width:52%;flex:1}
+  #live{margin-left:auto}
+  nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--marrom);gap:0;padding:4px 2px calc(4px + env(safe-area-inset-bottom));box-shadow:0 -2px 8px #0005}
+  nav a{flex:1;flex-direction:column;gap:1px;padding:5px 1px;font-size:11px;text-align:center;border-radius:10px;min-height:52px;justify-content:center}
+  nav a .ic{font-size:23px}
+  nav a.on{background:var(--fundo)}
+  main{padding:10px}
+  h2{font-size:21px}
+  .card{padding:12px;overflow-x:auto}
+  .row{gap:10px}
+  .row>label{flex:1 1 130px}
+  .lista{max-height:42vh}
+  .lote-num{font-size:32px;min-width:72px}
+  .lote-nome{font-size:24px}
+  .ok-grande{min-height:72px;font-size:26px}
+  .toggle{width:100%;justify-content:center}
+  table{font-size:15px}
+  .stats .card{min-width:140px}
+}

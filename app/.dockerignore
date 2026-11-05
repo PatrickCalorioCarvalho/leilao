@@ -1,0 +1,13 @@
+# Segunda trava: mesmo que alguém solte um arquivo sensível dentro de app/, ele não entra na imagem.
+Dockerfile
+.dockerignore
+node_modules
+.env
+.env.*
+*.sql
+!schema.sql
+*.xlsx
+*.xls
+*.csv
+*.zip
+*.tar

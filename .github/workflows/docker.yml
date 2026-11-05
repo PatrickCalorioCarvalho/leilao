@@ -1,0 +1,31 @@
+# A cada push na main: constrói a imagem e publica no GitHub Container Registry (ghcr.io), junto do repositório.
+# Não precisa configurar segredo nenhum: usa o GITHUB_TOKEN automático da própria execução.
+# A imagem fica em: ghcr.io/<dono>/<repositório>:latest  (aba "Packages" do repositório)
+name: Imagem Docker
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: write
+jobs:
+  imagem:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: nome   # o ghcr exige nome em minúsculas
+        run: echo "img=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: ./app
+          push: true
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          tags: |
+            ${{ steps.nome.outputs.img }}:latest
+            ${{ steps.nome.outputs.img }}:${{ github.sha }}

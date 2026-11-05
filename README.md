@@ -23,7 +23,7 @@ Do mesmo jeito que o Chocolatey: um comando no PowerShell instala e deixa tudo p
    O Administrador só é necessário se o Docker ainda não estiver instalado.
 2. Cole e aperte Enter:
    ```powershell
-   Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('URL_DO_INSTALADOR'))
+   Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/PatrickCalorioCarvalho/e49b8d05b90ecfb101c61d6bba3306c6/raw/instalar.ps1'))
    ```
 3. Responda às perguntas. O valor entre `[ ]` é o recomendado e o **Enter aceita**:
 

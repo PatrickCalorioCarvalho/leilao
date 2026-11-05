@@ -1,6 +1,6 @@
 # Instalador do Sistema de Leilao (estilo Chocolatey). Abra o PowerShell e cole:
 #
-#   Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/PatrickCalorioCarvalho/GIST_ID/raw/instalar.ps1'))
+#   Set-ExecutionPolicy Bypass -Scope Process -Force; [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://gist.githubusercontent.com/PatrickCalorioCarvalho/e49b8d05b90ecfb101c61d6bba3306c6/raw/instalar.ps1'))
 #
 # O que faz: instala/abre o Docker Desktop, baixa a imagem privada do sistema (pede o token do GitHub),
 # extrai os arquivos para a pasta escolhida e roda "leilao.ps1 preparar" (configura o .env, restaura o ultimo backup e sobe o sistema).

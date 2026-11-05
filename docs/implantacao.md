@@ -35,11 +35,11 @@ Esse token só **baixa imagens**. Não dá acesso ao código, aos backups nem a 
 
 O `instalar.ps1` precisa de um endereço público, porque o repositório é privado. Use um **Gist público**; o script não tem segredos:
 ```
-gh gist create --public -d "Instalador do Sistema de Leilao" instalar.ps1
+gh gist create --public -d "Instalador do Sistema de Leilao" instalar.ps1   # já feito
 ```
-O endereço do comando é `https://gist.githubusercontent.com/<usuário>/<id-do-gist>/raw/instalar.ps1`. Sem o hash de versão, ele sempre aponta para a versão mais nova.
+O Gist: https://gist.github.com/PatrickCalorioCarvalho/e49b8d05b90ecfb101c61d6bba3306c6. O endereço do comando é `https://gist.githubusercontent.com/PatrickCalorioCarvalho/e49b8d05b90ecfb101c61d6bba3306c6/raw/instalar.ps1`. Sem o hash de versão, ele sempre aponta para a versão mais nova.
 Coloque esse endereço no `README.md` (no lugar de `URL_DO_INSTALADOR`) e no cabeçalho do `instalar.ps1`.
-Quando mudar o `instalar.ps1`, atualize o Gist com `gh gist edit <id-do-gist> instalar.ps1`.
+Quando mudar o `instalar.ps1`, atualize o Gist com `gh gist edit e49b8d05b90ecfb101c61d6bba3306c6 instalar.ps1`.
 
 Os arquivos que o instalador entrega (`Leilao.bat`, `leilao.ps1`, `docker-compose.yml`, `.env.exemplo`, `logo\`) vão **dentro da imagem**.
 O Actions os copia para `app/implantacao/` antes do build. Por isso, qualquer mudança neles chega aos PCs com um `git push`.

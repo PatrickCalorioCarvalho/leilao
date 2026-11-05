@@ -44,17 +44,23 @@ O próprio servidor envia os backups para um bucket **privado** no Backblaze B2,
    - Type of Access: **Write Only**
 
    Copie o **keyID** e o **applicationKey**: a chave só aparece uma vez.
-5. No PC do leilão, preencha o `.env` (modelo em `.env.exemplo`):
+5. Crie uma **segunda** chave, para restaurar: Name `leilao-restaurar`, o mesmo bucket, Type of Access **Read Only**.
+   Ela **não vai no `.env`**: guarde no seu gerenciador de senhas. O `preparar.bat` pede essa chave só na hora de baixar o backup.
+6. No PC do leilão, preencha o `.env` (modelo em `.env.exemplo`):
    ```
    B2_KEY_ID=<keyID>
    B2_APP_KEY=<applicationKey>
    BACKUP_SENHA=<uma senha forte; guarde-a no seu gerenciador de senhas>
    ```
-6. Rode `iniciar.bat`; deve aparecer **Backblaze: ligado**. Clique **💾 Salvar backup agora** e confira o arquivo em *Browse Files* no site.
+7. Rode `iniciar.bat`; deve aparecer **Backblaze: ligado**. Clique **💾 Salvar backup agora** e confira o arquivo em *Browse Files* no site.
 
 > **Perdeu a `BACKUP_SENHA` = perdeu os backups criptografados.** Guarde-a fora do PC do leilão.
 
 ### Recuperar um backup do Backblaze
+**Automático:** `preparar.bat` → informe a chave **Read Only** → ele baixa o backup mais recente, descriptografa e restaura.
+Arrastar um arquivo `.enc`, `.zip` ou `.sql` em cima do `preparar.bat` restaura aquele arquivo, sem internet.
+
+**Manual:**
 1. Entre no site da Backblaze **com a sua conta** (a chave do `.env` não permite baixar) → *Browse Files* → baixe o arquivo.
 2. Arraste o `.enc` em cima de `utilitarios/descriptografar.bat`: ele pede a senha e gera o `.zip` (relatório final) ou o `.sql` (automático).
 3. Para voltar o banco: pegue o `leilao.sql`, coloque em `local/banco/leilao.sql` e rode `utilitarios/restaurar-banco.bat`.

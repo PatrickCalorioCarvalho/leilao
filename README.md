@@ -37,6 +37,7 @@ Leilao/
 
 | Item | Para que serve |
 |---|---|
+| `preparar.bat` | **Instala ou recupera** o PC num passo: pastas, imagem, último backup do Backblaze restaurado e sistema no ar |
 | `iniciar.bat` / `parar.bat` | Liga o sistema / faz backup e desliga |
 | `abrir-sistema.bat` | Abre o sistema numa janela própria e **imprime direto** (sem janela de impressão). Em outro PC, crie `servidor.txt` com `IP:3000` |
 | `.env` | Configuração deste PC (imagem, Backblaze, senha dos backups). **Fora do Git**; modelo em `.env.exemplo` |

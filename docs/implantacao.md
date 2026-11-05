@@ -36,12 +36,15 @@ Esse token só **baixa imagens**. Não dá acesso ao código, aos backups nem a 
 O PC precisa só do **Docker Desktop**. Copie para uma pasta (ex.: `C:\Leilao`):
 
 ```
-docker-compose.yml
+docker-compose.yml   .env.exemplo
+preparar.bat   preparar.ps1   (instala/recupera: pastas, imagem, último backup, sistema no ar)
 iniciar.bat   parar.bat   abrir-sistema.bat
 utilitarios\        (backup, restauração, firewall, descriptografar)
 logo\logo.jpg       (opcional)
 .env                (preenchido, ver abaixo)
 ```
+
+Depois, dois cliques em **`preparar.bat`**. Ele pede a chave **Read Only** do Backblaze, que não fica salva, para baixar o último backup.
 
 `.env` (modelo completo em `.env.exemplo`):
 ```

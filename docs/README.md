@@ -40,8 +40,8 @@ Depois, crie um **token classic só com `read:packages`** para os PCs do leilão
 
 ## 3. Instalar no PC do leilão
 
-1. Instale o **Docker Desktop** e abra-o uma vez.
-2. Copie a pasta com `docker-compose.yml`, `iniciar.bat`, `parar.bat`, `abrir-sistema.bat`, `utilitarios\`, `logo\` e o **`.env`**:
+1. Instale o **Docker Desktop**.
+2. Copie a pasta com `docker-compose.yml`, `preparar.bat`, `preparar.ps1`, `iniciar.bat`, `parar.bat`, `abrir-sistema.bat`, `utilitarios\`, `logo\`, `.env.exemplo` e o **`.env`**:
    ```
    IMAGEM=ghcr.io/seuusuario/leilao:latest
    GHCR_USUARIO=seuusuario
@@ -50,9 +50,17 @@ Depois, crie um **token classic só com `read:packages`** para os PCs do leilão
    B2_APP_KEY=...
    BACKUP_SENHA=...
    ```
-3. Dê dois cliques em **`iniciar.bat`**. Ele deve mostrar o endereço e **Backblaze: ligado**.
+3. Dê dois cliques em **`preparar.bat`**. Ele faz tudo sozinho:
+   - monta o `.env` **perguntando item a item**. O valor entre `[ ]` é o recomendado e o **Enter aceita**. Se você não trouxe o `.env`, ele cria;
+     para revisar depois, responda **s** em "Revisar a configuração?";
+   - abre o Docker, se estiver fechado;
+   - cria as pastas e baixa a imagem;
+   - pede a **chave de leitura** do Backblaze (não fica salva), baixa o **último backup** e o restaura;
+   - sobe o sistema e abre o navegador.
 4. Se o celular ou outro PC não abrir o endereço, rode `utilitarios\liberar-firewall.bat` como administrador (uma vez).
-5. Teste: abra <http://localhost:3000>, clique em **💾 Salvar backup agora** e veja o arquivo chegar no Backblaze (*Browse Files*).
+5. Teste: clique em **💾 Salvar backup agora** e veja o arquivo chegar no Backblaze (*Browse Files*).
+
+Nos dias seguintes, use o `iniciar.bat`. O `preparar.bat` é para instalar ou para **recuperar** o PC.
 
 Local sem internet? Prepare antes com [instalacao-offline.md](instalacao-offline.md).
 
@@ -77,6 +85,13 @@ O 💾 no topo mostra o horário do último backup, e `☁N` indica N arquivos e
 
 ## 6. Recuperar um backup
 
+**Jeito fácil:** rode `preparar.bat` e responda **s** quando ele perguntar se deve substituir o banco.
+Ele baixa o backup mais recente do Backblaze (relatório final ou automático, o que for mais novo) e o aplica.
+O banco anterior fica guardado em `local\banco\backups\leilao_antes_<data>.sql`.
+
+**Sem internet**, com o backup num pendrive: arraste o arquivo (`.enc`, `.zip` ou `.sql`) em cima do `preparar.bat`.
+
+**Manual:**
 1. Entre no Backblaze **com a sua conta** → *Browse Files* → baixe o arquivo (`finais/...zip.enc` ou `auto/leilao_auto.sql.gz.enc`).
 2. Arraste o arquivo em cima de `utilitarios\descriptografar.bat` e digite a senha dos backups.
 3. Pegue o `leilao.sql` (de dentro do `.zip`, ou o próprio `.sql`), coloque em `local\banco\leilao.sql` e rode `utilitarios\restaurar-banco.bat`.

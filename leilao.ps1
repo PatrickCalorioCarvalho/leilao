@@ -250,7 +250,7 @@ function Cmd-Descriptografar($arquivo) {
 }
 
 function Cmd-Backblaze {
-  # status do envio (vem do sistema) + painel para listar/baixar/apagar arquivos do bucket
+  # status do envio (vem do sistema) + painel (somente leitura) para listar/baixar arquivos do bucket
   Passo 'Backblaze'
   if (-not $env:B2_KEY_ID) { Aviso 'Backblaze nao configurado neste PC (opcao Configurar).' }
   else {
@@ -263,14 +263,14 @@ function Cmd-Backblaze {
       if ($info.b2.erro) { Aviso "ultimo erro: $($info.b2.erro) (tenta de novo sozinho a cada 5 min)" } else { Write-Host '    Situacao:             ok' -ForegroundColor Green }
     }
   }
-  if ((Read-Host "`n    Abrir o painel do bucket (listar/baixar/apagar)? (s/N)") -notmatch '^[sS]') { return }
+  if ((Read-Host "`n    Abrir o painel do bucket (listar/baixar)? (s/N)") -notmatch '^[sS]') { return }
   GarantirDocker; CriarPastas
   if (-not (Ok 'docker image inspect leilao-app:latest')) { AtualizarImagem }
-  Write-Host '    Chave de ADMINISTRACAO do Backblaze (listar/ler/apagar). Ela NAO fica salva neste PC.'
-  $env:B2_ADM_KEY_ID = Read-Host '    keyID'
-  $env:B2_ADM_APP_KEY = Segredo '    applicationKey'
-  docker run --rm -it -e B2_ADM_KEY_ID -e B2_ADM_APP_KEY -e B2_PASTA -e B2_BUCKET_NOME -v "$PWD\local\banco:/w" leilao-app:latest node /app/b2admin.js
-  Remove-Item env:B2_ADM_APP_KEY, env:B2_ADM_KEY_ID -ErrorAction SilentlyContinue
+  Write-Host '    Chave de LEITURA do Backblaze (Read Only). Ela NAO fica salva neste PC.'
+  $env:B2_LER_KEY_ID = Read-Host '    keyID'
+  $env:B2_LER_APP_KEY = Segredo '    applicationKey'
+  docker run --rm -it -e B2_LER_KEY_ID -e B2_LER_APP_KEY -e B2_PASTA -e B2_BUCKET_NOME -v "$PWD\local\banco:/w" leilao-app:latest node /app/b2admin.js
+  Remove-Item env:B2_LER_APP_KEY, env:B2_LER_KEY_ID -ErrorAction SilentlyContinue
 }
 
 function Cmd-Firewall {
@@ -335,7 +335,7 @@ function Menu {
     Write-Host '   8  Abrir backup criptografado (.enc)'
     Write-Host '   9  Liberar firewall (celulares e outros PCs)'
     Write-Host '  10  Instalacao offline (pendrive)'
-    Write-Host '  11  Backblaze (status, listar, baixar, apagar)'
+    Write-Host '  11  Backblaze (status, listar, baixar)'
     Write-Host '   0  Sair'
     $op = Read-Host "`n  Opcao"
     $cmd = switch ($op) { '1' { 'iniciar' } '2' { 'abrir' } '3' { 'parar' } '4' { 'restaurar' } '5' { 'configurar' }

@@ -1,11 +1,11 @@
-// Painel do Backblaze: listar, baixar e apagar backups. Roda dentro do Docker, chamado pelo Leilao.bat (opção Backblaze).
-// Usa uma chave de ADMINISTRAÇÃO (listFiles + readFiles + deleteFiles) digitada na hora: NÃO fica salva no .env.
-// Variáveis: B2_ADM_KEY_ID, B2_ADM_APP_KEY, B2_PASTA, B2_BUCKET_NOME (só se a chave não estiver presa a um bucket).
+// Painel do Backblaze: listar e baixar backups (SOMENTE LEITURA). Roda dentro do Docker, chamado pelo Leilao.bat (opção Backblaze).
+// Usa a chave de LEITURA (Read Only) digitada na hora: NÃO fica salva no .env. Não apaga nada.
+// Variáveis: B2_LER_KEY_ID, B2_LER_APP_KEY, B2_PASTA, B2_BUCKET_NOME (só se a chave não estiver presa a um bucket).
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 
-const ID = process.env.B2_ADM_KEY_ID, KEY = process.env.B2_ADM_APP_KEY;
+const ID = process.env.B2_LER_KEY_ID, KEY = process.env.B2_LER_APP_KEY;
 const PASTA = (process.env.B2_PASTA || 'leilao').replace(/^\/+|\/+$/g, '');
 const SAIDA = '/w/baixados';
 const sair = m => { console.log('ERRO: ' + m); process.exit(1); };
@@ -35,7 +35,6 @@ if (!bucket?.id || !bucket?.name) {
   if (bucket && !bucket.id) bucket = { id: bucket.bucketId, name: bucket.bucketName };
   if (!bucket) sair('a chave enxerga vários buckets: defina B2_BUCKET_NOME no .env. Buckets: ' + lista.map(b => b.bucketName).join(', '));
 }
-const pode = c => !s.capabilities || s.capabilities.includes(c);
 console.log(`\nConectado. Bucket: ${bucket.name}  |  pasta: "${PASTA}"`);
 console.log(`Permissões da chave: ${(s.capabilities || ['(todas)']).join(', ')}`);
 
@@ -64,7 +63,7 @@ async function escolher(arqs, verbo) {
 let arqs = [];
 try { arqs = await listar(); mostrar(arqs); } catch (e) { console.log('Não consegui listar: ' + e.message); }
 while (true) {
-  const op = (await perguntar('\n  [L] atualizar lista   [B] baixar   [A] apagar   [S] sair: ')).trim().toLowerCase();
+  const op = (await perguntar('\n  [L] atualizar lista   [B] baixar   [S] sair: ')).trim().toLowerCase();
   try {
     if (op === 's' || op === '') break;
     if (op === 'l') { arqs = await listar(); mostrar(arqs); }
@@ -76,13 +75,7 @@ while (true) {
       const destino = path.join(SAIDA, path.basename(f.fileName));
       fs.writeFileSync(destino, Buffer.from(await d.arrayBuffer()));
       console.log(`  Baixado em local\\banco\\baixados\\${path.basename(f.fileName)}  (para abrir um .enc use a opção "Abrir backup criptografado")`);
-    } else if (op === 'a') {
-      if (!pode('deleteFiles')) { console.log('  Esta chave não tem permissão de apagar (deleteFiles).'); continue; }
-      const f = await escolher(arqs, 'APAGAR'); if (!f) continue;
-      if ((await perguntar(`  Apagar "${f.fileName}" do Backblaze? Digite SIM: `)).trim() !== 'SIM') { console.log('  cancelado.'); continue; }
-      await api('b2_delete_file_version', { fileName: f.fileName, fileId: f.fileId });
-      console.log('  Apagado.'); arqs = await listar();
     }
-  } catch (e) { console.log('  ERRO: ' + e.message + (/lock|retention|retain/i.test(e.message) ? ' (o Object Lock protege este arquivo até o fim do prazo)' : '')); }
+  } catch (e) { console.log('  ERRO: ' + e.message); }
 }
 rl.close();

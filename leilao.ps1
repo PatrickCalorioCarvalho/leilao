@@ -2,7 +2,7 @@
 #   Dois cliques em Leilao.bat           -> menu
 #   Leilao.bat <comando> [arg1] [arg2]   -> direto. Comandos:
 #     iniciar | abrir [tela] | parar | restaurar [arquivo] | configurar | preparar [-Configurar] [-SemRestaurar]
-#     importar <planilha> [ano] | descriptografar <arquivo.enc> | firewall | offline-empacotar | offline-instalar
+#     importar <planilha> [ano] | descriptografar <arquivo.enc> | backblaze | firewall | offline-empacotar | offline-instalar
 #   Arrastar um arquivo em cima do Leilao.bat: planilha (.xlsx/.csv) = importar; backup (.enc/.zip/.sql/.gz) = restaurar
 param([string]$Comando = 'menu', [string]$Arg1 = '', [string]$Arg2 = '', [switch]$Configurar, [switch]$SemRestaurar, [switch]$SemPausa)
 $ErrorActionPreference = 'Continue'
@@ -249,6 +249,30 @@ function Cmd-Descriptografar($arquivo) {
   docker run --rm -e BACKUP_SENHA -v "$($f.DirectoryName):/w" -w /w leilao-app:latest node /app/descriptografar.js $f.Name
 }
 
+function Cmd-Backblaze {
+  # status do envio (vem do sistema) + painel para listar/baixar/apagar arquivos do bucket
+  Passo 'Backblaze'
+  if (-not $env:B2_KEY_ID) { Aviso 'Backblaze nao configurado neste PC (opcao Configurar).' }
+  else {
+    $info = try { Invoke-RestMethod http://localhost:3000/api/info -TimeoutSec 3 } catch { $null }
+    if (-not $info) { Aviso 'sistema parado: nao da para ver a fila de envio (use Iniciar).' }
+    elseif (-not $info.b2) { Aviso 'o sistema esta rodando sem o Backblaze (reinicie para aplicar o .env).' }
+    else {
+      Write-Host "    Na fila para enviar:  $($info.b2.pendentes)"
+      Write-Host ('    Ultimo envio:         ' + $(if ($info.b2.ultimoEnvio) { ([datetime]$info.b2.ultimoEnvio).ToString('dd/MM/yyyy HH:mm') } else { 'nenhum desde que o sistema iniciou' }))
+      if ($info.b2.erro) { Aviso "ultimo erro: $($info.b2.erro) (tenta de novo sozinho a cada 5 min)" } else { Write-Host '    Situacao:             ok' -ForegroundColor Green }
+    }
+  }
+  if ((Read-Host "`n    Abrir o painel do bucket (listar/baixar/apagar)? (s/N)") -notmatch '^[sS]') { return }
+  GarantirDocker; CriarPastas
+  if (-not (Ok 'docker image inspect leilao-app:latest')) { AtualizarImagem }
+  Write-Host '    Chave de ADMINISTRACAO do Backblaze (listar/ler/apagar). Ela NAO fica salva neste PC.'
+  $env:B2_ADM_KEY_ID = Read-Host '    keyID'
+  $env:B2_ADM_APP_KEY = Segredo '    applicationKey'
+  docker run --rm -it -e B2_ADM_KEY_ID -e B2_ADM_APP_KEY -e B2_PASTA -e B2_BUCKET_NOME -v "$PWD\local\banco:/w" leilao-app:latest node /app/b2admin.js
+  Remove-Item env:B2_ADM_APP_KEY, env:B2_ADM_KEY_ID -ErrorAction SilentlyContinue
+}
+
 function Cmd-Firewall {
   # libera a porta 3000 para celulares e outros PCs (precisa de administrador; pede sozinho)
   $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -291,6 +315,7 @@ function Executar($cmd, $a1, $a2) {
     'importar'          { Cmd-Importar $a1 $a2 }
     'descriptografar'   { Cmd-Descriptografar $a1 }
     'firewall'          { Cmd-Firewall }
+    'backblaze'         { Cmd-Backblaze }
     'offline-empacotar' { Cmd-OfflineEmpacotar }
     'offline-instalar'  { Cmd-OfflineInstalar }
     default             { Falha "comando desconhecido: $cmd" }
@@ -310,10 +335,12 @@ function Menu {
     Write-Host '   8  Abrir backup criptografado (.enc)'
     Write-Host '   9  Liberar firewall (celulares e outros PCs)'
     Write-Host '  10  Instalacao offline (pendrive)'
+    Write-Host '  11  Backblaze (status, listar, baixar, apagar)'
     Write-Host '   0  Sair'
     $op = Read-Host "`n  Opcao"
     $cmd = switch ($op) { '1' { 'iniciar' } '2' { 'abrir' } '3' { 'parar' } '4' { 'restaurar' } '5' { 'configurar' }
       '6' { 'preparar' } '7' { 'importar' } '8' { 'descriptografar' } '9' { 'firewall' } '0' { return }
+      '11' { 'backblaze' }
       '10' { if ((Read-Host '    1 = empacotar (PC com internet)  2 = instalar (PC sem internet)') -eq '2') { 'offline-instalar' } else { 'offline-empacotar' } }
       default { $null } }
     if (-not $cmd) { continue }

@@ -68,7 +68,9 @@ Antes de substituir, o banco atual é guardado em `local/banco/backups/leilao_an
 **Atalho:** arraste o arquivo (`.enc`, `.zip` ou `.sql`) em cima do `Leilao.bat`.
 **PC novo:** o instalador de um comando (ou **6 – Preparar**) já restaura o último backup do Backblaze sozinho.
 
-**Só quero ver o relatório de um backup criptografado:** baixe o `.enc` no site do Backblaze (com a sua conta) →
+**Ver o que está no Backblaze:** `Leilao.bat` → **11 – Backblaze**. Mostra a fila de envio e o último envio; o painel (chave de **leitura**, não fica salva; não apaga nada) lista os arquivos e baixa o escolhido em `localancoaixados`.
+
+**Só quero ver o relatório de um backup criptografado:** baixe o `.enc` (pela opção 11 ou no site do Backblaze) →
 `Leilao.bat` → **8 – Abrir backup criptografado** → ele gera o `.zip` com o relatório final, as planilhas e o `leilao.sql`.
 
 ## Opcional: OneDrive

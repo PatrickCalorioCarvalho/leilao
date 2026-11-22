@@ -64,6 +64,7 @@ Tudo é feito pelo **`Leilao.bat`**. Dois cliques nele abrem o menu:
    8  Abrir backup criptografado (.enc)
    9  Liberar firewall (celulares e outros PCs)
   10  Instalacao offline (pendrive)
+  11  Backblaze (status, listar, baixar)
    0  Sair
 ```
 
@@ -102,10 +103,11 @@ Leilao/
 | **Importar planilha** | Leilão antigo (`.xlsx`/`.csv`) como histórico |
 | **Abrir backup criptografado** | Abre um `.enc` baixado do Backblaze (gera o `.zip`/`.sql`) |
 | **Liberar firewall** | Se o celular/outro PC não abrir o endereço (pede administrador sozinho; uma vez) |
+| **Backblaze** | Mostra a fila de envio e o último envio; abre um painel **somente leitura** para listar e baixar os arquivos do bucket (pede a chave de **leitura**, que não fica salva) |
 | **Instalação offline** | Empacotar as imagens num PC com internet e instalar num PC sem internet (pendrive) |
 
 O `.env` guarda a configuração deste PC (imagem, Backblaze, senha dos backups). Ele fica **fora do Git**; o modelo está em `.env.exemplo`.
-Em `app/` ficam `server.js` (servidor), `db.js`, `backup.js` (backups e relatórios), `b2.js` (envio ao Backblaze), `restaurar.js`, `schema.sql` e `public/` (telas).
+Em `app/` ficam `server.js` (servidor), `db.js`, `backup.js` (backups e relatórios), `b2.js` (envio ao Backblaze), `b2admin.js` (painel de leitura do bucket), `restaurar.js`, `schema.sql` e `public/` (telas).
 
 ## Sistema neutro: tudo da entidade fica no banco
 

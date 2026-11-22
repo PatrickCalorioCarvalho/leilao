@@ -98,6 +98,7 @@ function ObterBackup($arquivo) {
     $docker += @('-v', "$($f.DirectoryName):/in:ro", 'leilao-app:latest', 'node', '/app/restaurar.js', '/w/leilao.novo', "/in/$($f.Name)")
   } else {
     if (-not $env:B2_LER_KEY_ID) {
+      $script:pediuLer = $true
       Write-Host '    Chave de LEITURA do Backblaze (Read Only). Ela NAO fica salva neste PC.'
       $env:B2_LER_KEY_ID = Read-Host '    keyID'
       $env:B2_LER_APP_KEY = Segredo '    applicationKey'
@@ -106,7 +107,7 @@ function ObterBackup($arquivo) {
   }
   if (-not $env:BACKUP_SENHA) { $env:BACKUP_SENHA = Segredo '    Senha dos backups (Enter se nao forem criptografados)' }
   docker @docker
-  Remove-Item env:B2_LER_APP_KEY, env:B2_LER_KEY_ID -ErrorAction SilentlyContinue
+  if ($script:pediuLer) { Remove-Item env:B2_LER_APP_KEY, env:B2_LER_KEY_ID -ErrorAction SilentlyContinue; $script:pediuLer = $false }
   if ($LASTEXITCODE -ne 0 -or -not (Test-Path local\banco\leilao.novo)) {
     Remove-Item local\banco\leilao.novo -ErrorAction SilentlyContinue; Falha 'nao consegui obter o backup (veja a mensagem acima). Nada foi alterado.' }
 }
@@ -177,6 +178,8 @@ function Cmd-Configurar {
     @{ k = 'B2_KEY_ID';    t = 'Backblaze: keyID da chave de ENVIO (Write Only)';  d = '' },
     @{ k = 'B2_APP_KEY';   t = 'Backblaze: applicationKey da chave de ENVIO';       s = $true },
     @{ k = 'B2_PASTA';     t = 'Backblaze: pasta dentro do bucket';                 d = 'leilao' },
+    @{ k = 'B2_LER_KEY_ID';  t = 'Backblaze: keyID da chave de LEITURA (opcional, evita digitar ao restaurar/ver o bucket)'; d = '' },
+    @{ k = 'B2_LER_APP_KEY'; t = 'Backblaze: applicationKey da chave de LEITURA (opcional)'; s = $true },
     @{ k = 'BACKUP_SENHA'; t = 'Senha para criptografar os backups';                s = $true; confirma = $true },
     @{ k = 'NUVEM_DIR';    t = 'Pasta do OneDrive/Drive neste PC (opcional)';       d = '' }
   )
@@ -266,11 +269,14 @@ function Cmd-Backblaze {
   if ((Read-Host "`n    Abrir o painel do bucket (listar/baixar)? (s/N)") -notmatch '^[sS]') { return }
   GarantirDocker; CriarPastas
   if (-not (Ok 'docker image inspect leilao-app:latest')) { AtualizarImagem }
-  Write-Host '    Chave de LEITURA do Backblaze (Read Only). Ela NAO fica salva neste PC.'
-  $env:B2_LER_KEY_ID = Read-Host '    keyID'
-  $env:B2_LER_APP_KEY = Segredo '    applicationKey'
+  $pediu = -not $env:B2_LER_KEY_ID
+  if ($pediu) {
+    Write-Host '    Chave de LEITURA do Backblaze (Read Only). Nao fica salva (para salvar: Configurar).'
+    $env:B2_LER_KEY_ID = Read-Host '    keyID'
+    $env:B2_LER_APP_KEY = Segredo '    applicationKey'
+  }
   docker run --rm -it -e B2_LER_KEY_ID -e B2_LER_APP_KEY -e B2_PASTA -e B2_BUCKET_NOME -v "$PWD\local\banco:/w" leilao-app:latest node /app/b2admin.js
-  Remove-Item env:B2_LER_APP_KEY, env:B2_LER_KEY_ID -ErrorAction SilentlyContinue
+  if ($pediu) { Remove-Item env:B2_LER_APP_KEY, env:B2_LER_KEY_ID -ErrorAction SilentlyContinue }
 }
 
 function Cmd-Firewall {

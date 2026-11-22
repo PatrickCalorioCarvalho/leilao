@@ -103,7 +103,7 @@ Leilao/
 | **Importar planilha** | Leilão antigo (`.xlsx`/`.csv`) como histórico |
 | **Abrir backup criptografado** | Abre um `.enc` baixado do Backblaze (gera o `.zip`/`.sql`) |
 | **Liberar firewall** | Se o celular/outro PC não abrir o endereço (pede administrador sozinho; uma vez) |
-| **Backblaze** | Mostra a fila de envio e o último envio; abre um painel **somente leitura** para listar e baixar os arquivos do bucket (pede a chave de **leitura**, que não fica salva) |
+| **Backblaze** | Mostra a fila de envio e o último envio; abre um painel **somente leitura** para listar e baixar os arquivos do bucket (usa a chave de **leitura**: pede na hora ou lê do `.env` se você salvou em Configurar) |
 | **Instalação offline** | Empacotar as imagens num PC com internet e instalar num PC sem internet (pendrive) |
 
 O `.env` guarda a configuração deste PC (imagem, Backblaze, senha dos backups). Ele fica **fora do Git**; o modelo está em `.env.exemplo`.

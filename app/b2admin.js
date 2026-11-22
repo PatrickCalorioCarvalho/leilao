@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 
-const ID = process.env.B2_LER_KEY_ID, KEY = process.env.B2_LER_APP_KEY;
+const ID = process.env.B2_LER_KEY_ID || process.env.B2_KEY_ID, KEY = process.env.B2_LER_APP_KEY || process.env.B2_APP_KEY; // sem chave de leitura, tenta a de envio do .env
 const PASTA = (process.env.B2_PASTA || 'leilao').replace(/^\/+|\/+$/g, '');
 const SAIDA = '/w/baixados';
 const sair = m => { console.log('ERRO: ' + m); process.exit(1); };
@@ -61,7 +61,7 @@ async function escolher(arqs, verbo) {
 }
 
 let arqs = [];
-try { arqs = await listar(); mostrar(arqs); } catch (e) { console.log('Não consegui listar: ' + e.message); }
+try { arqs = await listar(); mostrar(arqs); } catch (e) { console.log('Não consegui listar: ' + e.message + (s.capabilities && !s.capabilities.includes('listFiles') ? '\n  Esta chave não tem permissão de listar (listFiles): crie uma chave Read Only no Backblaze.' : '')); }
 while (true) {
   const op = (await perguntar('\n  [L] atualizar lista   [B] baixar   [S] sair: ')).trim().toLowerCase();
   try {

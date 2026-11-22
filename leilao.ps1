@@ -269,13 +269,13 @@ function Cmd-Backblaze {
   if ((Read-Host "`n    Abrir o painel do bucket (listar/baixar)? (s/N)") -notmatch '^[sS]') { return }
   GarantirDocker; CriarPastas
   if (-not (Ok 'docker image inspect leilao-app:latest')) { AtualizarImagem }
-  $pediu = -not $env:B2_LER_KEY_ID
+  $pediu = -not ($env:B2_LER_KEY_ID -or $env:B2_KEY_ID)
   if ($pediu) {
     Write-Host '    Chave de LEITURA do Backblaze (Read Only). Nao fica salva (para salvar: Configurar).'
     $env:B2_LER_KEY_ID = Read-Host '    keyID'
     $env:B2_LER_APP_KEY = Segredo '    applicationKey'
   }
-  docker run --rm -it -e B2_LER_KEY_ID -e B2_LER_APP_KEY -e B2_PASTA -e B2_BUCKET_NOME -v "$PWD\local\banco:/w" leilao-app:latest node /app/b2admin.js
+  docker run --rm -it -e B2_LER_KEY_ID -e B2_LER_APP_KEY -e B2_KEY_ID -e B2_APP_KEY -e B2_PASTA -e B2_BUCKET_NOME -v "$PWD\local\banco:/w" leilao-app:latest node /app/b2admin.js
   if ($pediu) { Remove-Item env:B2_LER_APP_KEY, env:B2_LER_KEY_ID -ErrorAction SilentlyContinue }
 }
 
